@@ -1,0 +1,382 @@
+general:
+  # Launch YASB status bar on startup. (Zebar replaced by YASB.)
+  # YASB runs as its own app; if installed via the standard installer the
+  # command below starts it. Adjust the path if you installed elsewhere.
+  startup_commands:
+    - 'shell-exec yasbc start'
+    # Auto-hide the Windows taskbar (hidden, but reappears on hover / Win key).
+    - 'shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\taskbar.ps1" autohide'
+    # Auto-launch the apps that have a fixed home workspace. The window_rules
+    # below move each one to its workspace (Serial->2, Chrome->3, Teams->5,
+    # Slack->6, Outlook->7), so every workspace is populated on startup.
+    # Only launch Chrome if it isn't already running, so it restores the
+    # previous session (all old tabs) instead of spawning a second instance.
+    - 'shell-exec powershell -NoProfile -Command "if (-not (Get-Process chrome -ErrorAction SilentlyContinue)) { Start-Process chrome }"'
+    - 'shell-exec cmd /c start "" ms-teams'
+    - 'shell-exec cmd /c start "" slack'
+    - 'shell-exec cmd /c start "" olk'
+    - 'shell-exec wt --title SERIAL -p "Serial"'
+
+  # Stop YASB cleanly on shutdown.
+  shutdown_commands: ['shell-exec yasbc stop']
+
+  config_reload_commands: []
+
+  # Don't steal focus on cursor movement - keyboard-driven workflow.
+  focus_follows_cursor: false
+
+  # Jump back to previous workspace when re-focusing the current one.
+  # Handy for quick toggling between e.g. dev and browser.
+  toggle_workspace_on_refocus: false
+
+  cursor_jump:
+    enabled: true
+    # Jump cursor when focus moves between monitors so the pointer follows
+    # you to the other screen.
+    trigger: 'monitor_focus'
+
+  hide_method: 'cloak'
+
+  show_all_in_taskbar: false
+
+gaps:
+  scale_with_dpi: true
+
+  # Gap between adjacent tiled windows.
+  inner_gap: '12px'
+
+  # Gap between windows and the screen edge. YASB reserves its own height at
+  # the top (work area already starts below the bar), so `top` only needs the
+  # same 12px breathing room as the other sides — NOT bar-height + padding,
+  # otherwise the gap doubles. If windows ever overlap the bar, bump `top` up.
+  outer_gap:
+    top: '12px'
+    right: '12px'
+    bottom: '12px'
+    left: '12px'
+
+window_effects:
+  # Focused window: bright "hacker green" border so the active pane is obvious.
+  focused_window:
+    border:
+      enabled: true
+      # Gruvbox orange for the focused window.
+      color: '#fe8019'
+    hide_title_bar:
+      enabled: false
+    corner_style:
+      enabled: true
+      style: 'square'
+    transparency:
+      # Focused window: 90% opacity - subtle see-through, less distracting.
+      enabled: true
+      opacity: '90%'
+
+  # Unfocused windows: dim border + slight transparency for depth.
+  other_windows:
+    border:
+      enabled: true
+      # Dim Gruvbox grey for unfocused windows.
+      color: '#504945'
+    hide_title_bar:
+      enabled: false
+    corner_style:
+      enabled: true
+      style: 'square'
+    transparency:
+      # Unfocused windows: a touch more transparent than focused.
+      enabled: true
+      opacity: '85%'
+
+window_behavior:
+  initial_state: 'tiling'
+
+  state_defaults:
+    floating:
+      centered: true
+      shown_on_top: false
+    fullscreen:
+      maximized: false
+      shown_on_top: false
+
+workspaces:
+  # --- Monitor 0: main work (dev) ---
+  - name: '1'
+    display_name: '1: term'
+    bind_to_monitor: 1
+    keep_alive: true
+  - name: '2'
+    display_name: '2: serial'
+    bind_to_monitor: 1
+    keep_alive: true
+  - name: '3'
+    display_name: '3: web'
+    bind_to_monitor: 1
+    keep_alive: true
+  - name: '4'
+    display_name: '4: code'
+    bind_to_monitor: 1
+    keep_alive: true
+
+  # --- Monitor 1: secondary (comms) ---
+  - name: '5'
+    display_name: '5: teams'
+    bind_to_monitor: 0
+    keep_alive: true
+  - name: '6'
+    display_name: '6: slack'
+    bind_to_monitor: 0
+    keep_alive: true
+  - name: '7'
+    display_name: '7: mail'
+    bind_to_monitor: 0
+    keep_alive: true
+
+  # --- Misc workspaces (web / extra) ---
+  # Monitor binding is location-dependent and switched at runtime by
+  # glaze-layout.ps1 (Alt+Shift+Z = home, Alt+Shift+O = office). The values
+  # below are the HOME default (monitor 1). In the office these move to the
+  # third screen (monitor 2). No `keep_alive` on purpose - a kept-alive
+  # workspace bound to a missing monitor causes a "no Workspace" fatal error,
+  # so 8/9 are created on demand and always fall back cleanly.
+  - name: '8'
+    display_name: '8: misc'
+    bind_to_monitor: 2
+  - name: '9'
+    display_name: '9'
+    bind_to_monitor: 2
+
+window_rules:
+  # --- Auto-assign apps to their home workspace ---
+
+  # Chrome -> Web (WS 3)
+  - commands: ['move --workspace 3']
+    match:
+      - window_process: { equals: 'chrome' }
+
+  # Microsoft Teams (new client) -> Teams (WS 5)
+  - commands: ['move --workspace 5']
+    match:
+      - window_process: { equals: 'ms-teams' }
+      - window_process: { equals: 'Teams' }
+
+  # Slack -> Slack (WS 6). Process is 'Slack' (capital); use case-insensitive
+  # regex so it matches regardless of casing.
+  - commands: ['move --workspace 6']
+    match:
+      - window_process: { regex: '(?i)^slack$' }
+
+  # VS Code -> code (WS 4). Process is 'Code'.
+  - commands: ['move --workspace 4']
+    match:
+      - window_process: { regex: '(?i)^code$' }
+
+  # Outlook (classic + new) -> Mail (WS 7)
+  - commands: ['move --workspace 7']
+    match:
+      - window_process: { equals: 'OUTLOOK' }
+      - window_process: { equals: 'olk' }
+
+  # Serial terminal: a Windows Terminal window whose title we set to "SERIAL"
+  # (see launcher keybinding below) -> Serial (WS 2).
+  - commands: ['move --workspace 2']
+    match:
+      - window_title: { regex: '(?i)serial' }
+        window_process: { equals: 'WindowsTerminal' }
+
+  # --- Ignore rules for apps that don't tile well ---
+  - commands: ['ignore']
+    match:
+      # Ignore any leftover Zebar windows (if still running).
+      - window_process: { equals: 'zebar' }
+
+      # Picture-in-picture for browsers.
+      - window_title: { regex: '[Pp]icture.in.[Pp]icture' }
+        window_class: { regex: 'Chrome_WidgetWin_1|MozillaDialogClass' }
+
+      # 3rd-party apps that shouldn't be managed.
+      - window_process: { equals: 'PowerToys' }
+        window_class: { regex: 'HwndWrapper\[PowerToys\.PowerAccent.*?\]' }
+      - window_title: { equals: 'Command Palette' }
+        window_class: { equals: 'WinUIDesktopWin32WindowClass' }
+      - window_process: { equals: 'PowerToys' }
+        window_title: { regex: '.*? - Peek' }
+      - window_process: { equals: 'Lively' }
+        window_class: { regex: 'HwndWrapper' }
+      - window_process: { equals: 'EXCEL' }
+        window_class: { not_regex: 'XLMAIN' }
+      - window_process: { equals: 'WINWORD' }
+        window_class: { not_regex: 'OpusApp' }
+      - window_process: { equals: 'POWERPNT' }
+        window_class: { not_regex: 'PPTFrameClass' }
+
+binding_modes:
+  # Resize mode: Alt+R to enter, then HJKL / arrows to resize, Esc/Enter to exit.
+  - name: 'resize'
+    keybindings:
+      - commands: ['resize --width -2%']
+        bindings: ['h', 'left']
+      - commands: ['resize --width +2%']
+        bindings: ['l', 'right']
+      - commands: ['resize --height +2%']
+        bindings: ['k', 'up']
+      - commands: ['resize --height -2%']
+        bindings: ['j', 'down']
+      - commands: ['wm-disable-binding-mode --name resize']
+        bindings: ['escape', 'enter']
+
+keybindings:
+  # --- Focus: move focus between tiles (Vim HJKL or arrows) ---
+  - commands: ['focus --direction left']
+    bindings: ['alt+h', 'alt+left']
+  - commands: ['focus --direction right']
+    bindings: ['alt+l', 'alt+right']
+  - commands: ['focus --direction up']
+    bindings: ['alt+k', 'alt+up']
+  - commands: ['focus --direction down']
+    bindings: ['alt+j', 'alt+down']
+
+  # --- Move: move the focused window between tiles ---
+  - commands: ['move --direction left']
+    bindings: ['alt+shift+h', 'alt+shift+left']
+  - commands: ['move --direction right']
+    bindings: ['alt+shift+l', 'alt+shift+right']
+  - commands: ['move --direction up']
+    bindings: ['alt+shift+k', 'alt+shift+up']
+  - commands: ['move --direction down']
+    bindings: ['alt+shift+j', 'alt+shift+down']
+
+  # --- Resize (quick keys) ---
+  - commands: ['resize --width -2%']
+    bindings: ['alt+u']
+  - commands: ['resize --width +2%']
+    bindings: ['alt+p']
+  - commands: ['resize --height +2%']
+    bindings: ['alt+o']
+  - commands: ['resize --height -2%']
+    bindings: ['alt+i']
+  - commands: ['wm-enable-binding-mode --name resize']
+    bindings: ['alt+r']
+
+  # --- Window state ---
+  - commands: ['toggle-tiling-direction']
+    bindings: ['alt+v']
+  - commands: ['wm-cycle-focus']
+    bindings: ['alt+space']
+  - commands: ['toggle-floating --centered']
+    bindings: ['alt+shift+space']
+  - commands: ['toggle-tiling']
+    bindings: ['alt+t']
+  - commands: ['toggle-fullscreen']
+    bindings: ['alt+f']
+  - commands: ['close']
+    bindings: ['alt+shift+q']
+
+  # --- WM control ---
+  - commands: ['wm-toggle-pause']
+    bindings: ['alt+shift+p']
+  - commands: ['wm-exit']
+    bindings: ['alt+shift+e']
+  - commands: ['wm-reload-config']
+    bindings: ['alt+shift+r']
+  - commands: ['wm-redraw']
+    bindings: ['alt+shift+w']
+
+  # --- App launchers ---
+  # Windows Terminal (your WSL/neovim default profile). Alt+Enter.
+  - commands: ['shell-exec wt']
+    bindings: ['alt+enter']
+
+  # Chrome. Alt+Shift+Enter -> opens and auto-moves to WS 3 via window_rule.
+  - commands: ['shell-exec cmd /c start chrome']
+    bindings: ['alt+shift+enter']
+
+  # Snipping Tool: start the screen-clip overlay directly. Alt+Shift+X.
+  - commands: ['shell-exec cmd /c start ms-screenclip:']
+    bindings: ['alt+shift+x']
+
+  # Snipping Tool: open the full app (delayed snips, recording). Alt+Shift+C.
+  - commands: ['shell-exec cmd /c start ms-screensketch:']
+    bindings: ['alt+shift+c']
+
+  # Switch monitor layout: office (3 monitors) vs home (2 monitors).
+  # Patches the workspace->monitor bindings and reloads GlazeWM.
+  - commands: ['shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\glaze-layout.ps1" office']
+    bindings: ['alt+shift+o']
+  - commands: ['shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\glaze-layout.ps1" home']
+    bindings: ['alt+shift+z']
+
+  # Toggle the Windows taskbar on/off. Alt+Shift+T (T = taskbar).
+  - commands: ['shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\taskbar.ps1" toggle']
+    bindings: ['alt+shift+t']
+
+  # Serial terminal: launch Windows Terminal with the "Serial" profile and a
+  # window title "SERIAL" so the window_rule sends it to WS 4.
+  # NOTE: requires a Windows Terminal profile named "Serial" (see notes).
+  - commands: ['shell-exec wt --title SERIAL -p "Serial"']
+    bindings: ['alt+shift+s']
+
+  # --- Workspace navigation ---
+  - commands: ['focus --next-active-workspace']
+    bindings: ['alt+s']
+  - commands: ['focus --prev-active-workspace']
+    bindings: ['alt+a']
+  # Jump to the last-used workspace. Alt+Tab overrides the native Windows
+  # Alt+Tab so the familiar "switch back to previous app" habit works inside
+  # GlazeWM (one app per workspace -> recent-workspace == previous app).
+  - commands: ['focus --recent-workspace']
+    bindings: ['alt+d', 'alt+tab']
+
+  # Cycle through the active workspaces with Alt+Shift+Tab (next active),
+  # so repeated presses walk through all your open apps.
+  - commands: ['focus --next-active-workspace']
+    bindings: ['alt+shift+tab']
+
+  - commands: ['focus --workspace 1']
+    bindings: ['alt+1']
+  - commands: ['focus --workspace 2']
+    bindings: ['alt+2']
+  - commands: ['focus --workspace 3']
+    bindings: ['alt+3']
+  - commands: ['focus --workspace 4']
+    bindings: ['alt+4']
+  - commands: ['focus --workspace 5']
+    bindings: ['alt+5']
+  - commands: ['focus --workspace 6']
+    bindings: ['alt+6']
+  - commands: ['focus --workspace 7']
+    bindings: ['alt+7']
+  - commands: ['focus --workspace 8']
+    bindings: ['alt+8']
+  - commands: ['focus --workspace 9']
+    bindings: ['alt+9']
+
+  # --- Move whole workspace to the other monitor ---
+  - commands: ['move-workspace --direction left']
+    bindings: ['alt+shift+a']
+  - commands: ['move-workspace --direction right']
+    bindings: ['alt+shift+f']
+  - commands: ['move-workspace --direction up']
+    bindings: ['alt+shift+d']
+  - commands: ['move-workspace --direction down']
+    bindings: ['alt+shift+g']
+
+  # --- Move focused window to a workspace (and follow it there) ---
+  - commands: ['move --workspace 1', 'focus --workspace 1']
+    bindings: ['alt+shift+1']
+  - commands: ['move --workspace 2', 'focus --workspace 2']
+    bindings: ['alt+shift+2']
+  - commands: ['move --workspace 3', 'focus --workspace 3']
+    bindings: ['alt+shift+3']
+  - commands: ['move --workspace 4', 'focus --workspace 4']
+    bindings: ['alt+shift+4']
+  - commands: ['move --workspace 5', 'focus --workspace 5']
+    bindings: ['alt+shift+5']
+  - commands: ['move --workspace 6', 'focus --workspace 6']
+    bindings: ['alt+shift+6']
+  - commands: ['move --workspace 7', 'focus --workspace 7']
+    bindings: ['alt+shift+7']
+  - commands: ['move --workspace 8', 'focus --workspace 8']
+    bindings: ['alt+shift+8']
+  - commands: ['move --workspace 9', 'focus --workspace 9']
+    bindings: ['alt+shift+9']
