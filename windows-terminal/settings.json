@@ -77,12 +77,11 @@
                                       "guid":  "{f7a3c1e0-9b2d-4c8a-a1f2-5e6d7c8b9a01}",
                                       "icon":  "❯",
                                       "name":  "Serial",
-                                      "opacity":  90,
+                                      "opacity":  85,
                                       "padding":  "0",
                                       "scrollbarState":  "hidden",
                                       "startingDirectory":  "%USERPROFILE%",
-                                      "useAcrylic":  true,
-                                      "experimental.pixelShaderPath":  "%USERPROFILE%\\.config\\shaders\\crt.hlsl"
+                                      "useAcrylic":  true
                                   }
                               ]
                  },
