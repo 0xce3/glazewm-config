@@ -90,8 +90,9 @@ if (Test-Path $flowSettings) {
     $json.Theme = 'Gruvbox Soft Dark'
     $json.ColorScheme = 'Dark'
     $json.Hotkey = 'LWin'
+    $json.UseSound = $false
     $json | ConvertTo-Json -Depth 32 | Set-Content $flowSettings -Encoding UTF8
-    Write-Host "OK:     Flow Launcher settings (theme/dark/LWin hotkey)" -ForegroundColor Green
+    Write-Host "OK:     Flow Launcher settings (theme/dark/LWin hotkey/no sound)" -ForegroundColor Green
 }
 
 Write-Host ''
