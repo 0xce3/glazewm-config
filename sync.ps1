@@ -23,6 +23,7 @@ $map = @(
     @{ Repo = 'glazewm\glaze-layout.ps1';       Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Repo = 'yasb\config.yaml';               Live = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Repo = 'yasb\styles.css';                Live = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
+    @{ Repo = 'translucenttb\settings.json';    Live = (Join-Path $env:LOCALAPPDATA 'Packages\28017CharlesMilette.TranslucentTB_v826wp6bftszj\RoamingState\settings.json') }
 )
 
 foreach ($item in $map) {

@@ -15,6 +15,7 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 | `yasb/config.yaml` | YASB status bar layout | `~/.config/yasb/config.yaml` |
 | `yasb/styles.css` | YASB Gruvbox Soft Dark theme | `~/.config/yasb/styles.css` |
 | `windows-terminal/settings.json` | Windows Terminal profiles + Gruvbox schemes | `…/WindowsTerminal_*/LocalState/settings.json` |
+| `translucenttb/settings.json` | TranslucentTB config (fully transparent taskbar) | `…/TranslucentTB_*/RoamingState/settings.json` |
 
 ## Theme
 
@@ -26,6 +27,7 @@ Gruvbox Soft Dark throughout. Focused window border = Gruvbox orange (`#fe8019`)
 - [GlazeWM](https://github.com/glzr-io/glazewm)
 - [YASB](https://github.com/amnweb/yasb) — `winget install AmN.yasb`
 - [Windows Terminal](https://github.com/microsoft/terminal)
+- [TranslucentTB](https://github.com/TranslucentTB/TranslucentTB) — `winget install CharlesMilette.TranslucentTB` (transparent taskbar; `install.ps1` handles it)
 - [PuTTY](https://www.putty.org/) (for `plink`, used by the serial console) — `winget install PuTTY.PuTTY`
 - WSL (Ubuntu) + [my neovim config](https://github.com/0xce3/nvim-config)
 - JetBrainsMono Nerd Font
