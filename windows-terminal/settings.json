@@ -25,6 +25,34 @@
                         {
                             "id":  "Terminal.DuplicatePaneAuto",
                             "keys":  "alt+shift+d"
+                        },
+                        {
+                            "id":  "Terminal.FindText",
+                            "keys":  "ctrl+shift+f"
+                        },
+                        {
+                            "id":  "Terminal.ScrollUpPage",
+                            "keys":  "shift+pageup"
+                        },
+                        {
+                            "id":  "Terminal.ScrollDownPage",
+                            "keys":  "shift+pagedown"
+                        },
+                        {
+                            "id":  "Terminal.ScrollUp",
+                            "keys":  "ctrl+shift+up"
+                        },
+                        {
+                            "id":  "Terminal.ScrollDown",
+                            "keys":  "ctrl+shift+down"
+                        },
+                        {
+                            "id":  "Terminal.ScrollToTop",
+                            "keys":  "ctrl+shift+home"
+                        },
+                        {
+                            "id":  "Terminal.ScrollToBottom",
+                            "keys":  "ctrl+shift+end"
                         }
                     ],
     "newTabMenu":  [

@@ -76,6 +76,18 @@ powershell -ExecutionPolicy Bypass -File .\sync.ps1 "describe the change"
 | `Alt+F` | Fullscreen |
 | `Alt+Shift+R` | Reload GlazeWM config |
 
+## Terminal scrolling & search (Windows Terminal)
+
+Global Windows Terminal keybindings — useful for the serial console scrollback
+(plain `PageUp` / `Ctrl+F` are intentionally left for Neovim/bash):
+
+| Key | Action |
+|-----|--------|
+| `Shift+PageUp` / `Shift+PageDown` | Scroll output one page |
+| `Ctrl+Shift+Up` / `Ctrl+Shift+Down` | Scroll output one line |
+| `Ctrl+Shift+Home` / `Ctrl+Shift+End` | Scroll to top / bottom |
+| `Ctrl+Shift+F` | Search in the output |
+
 ## Workspace layout
 
 - **Monitor 0 (dev):** `1:term` · `2:code` · `3:web` · `4:serial`
