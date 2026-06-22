@@ -6,16 +6,6 @@ general:
     - 'shell-exec yasbc start'
     # Auto-hide the Windows taskbar (hidden, but reappears on hover / Win key).
     - 'shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\taskbar.ps1" autohide'
-    # Auto-launch the apps that have a fixed home workspace. The window_rules
-    # below move each one to its workspace (Serial->2, Chrome->3, Teams->5,
-    # Slack->6, Outlook->7), so every workspace is populated on startup.
-    # Only launch Chrome if it isn't already running, so it restores the
-    # previous session (all old tabs) instead of spawning a second instance.
-    - 'shell-exec powershell -NoProfile -Command "if (-not (Get-Process chrome -ErrorAction SilentlyContinue)) { Start-Process chrome }"'
-    - 'shell-exec cmd /c start "" ms-teams'
-    - 'shell-exec cmd /c start "" slack'
-    - 'shell-exec cmd /c start "" olk'
-    - 'shell-exec wt --title SERIAL -p "Serial"'
 
   # Stop YASB cleanly on shutdown.
   shutdown_commands: ['shell-exec yasbc stop']
@@ -103,33 +93,33 @@ workspaces:
   # --- Monitor 0: main work (dev) ---
   - name: '1'
     display_name: '1: term'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
   - name: '2'
     display_name: '2: serial'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
   - name: '3'
     display_name: '3: web'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
   - name: '4'
     display_name: '4: code'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
 
   # --- Monitor 1: secondary (comms) ---
   - name: '5'
     display_name: '5: teams'
-    bind_to_monitor: 0
+    bind_to_monitor: 1
     keep_alive: true
   - name: '6'
     display_name: '6: slack'
-    bind_to_monitor: 0
+    bind_to_monitor: 1
     keep_alive: true
   - name: '7'
     display_name: '7: mail'
-    bind_to_monitor: 0
+    bind_to_monitor: 1
     keep_alive: true
 
   # --- Misc workspaces (web / extra) ---
@@ -141,10 +131,10 @@ workspaces:
   # so 8/9 are created on demand and always fall back cleanly.
   - name: '8'
     display_name: '8: misc'
-    bind_to_monitor: 2
+    bind_to_monitor: 1
   - name: '9'
     display_name: '9'
-    bind_to_monitor: 2
+    bind_to_monitor: 1
 
 window_rules:
   # --- Auto-assign apps to their home workspace ---
@@ -226,15 +216,18 @@ binding_modes:
         bindings: ['escape', 'enter']
 
 keybindings:
-  # --- Focus: move focus between tiles (Vim HJKL or arrows) ---
+  # --- Focus: move focus between tiles (Vim HJKL or left/right arrows) ---
+  # Note: alt+up / alt+down are intentionally NOT bound here so they stay free
+  # for "move line up/down" inside editors (Neovim/VS Code). Use alt+k / alt+j
+  # for focus up/down instead.
   - commands: ['focus --direction left']
     bindings: ['alt+h', 'alt+left']
   - commands: ['focus --direction right']
     bindings: ['alt+l', 'alt+right']
   - commands: ['focus --direction up']
-    bindings: ['alt+k', 'alt+up']
+    bindings: ['alt+k']
   - commands: ['focus --direction down']
-    bindings: ['alt+j', 'alt+down']
+    bindings: ['alt+j']
 
   # --- Move: move the focused window between tiles ---
   - commands: ['move --direction left']
