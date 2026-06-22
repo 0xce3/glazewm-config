@@ -24,6 +24,7 @@ $map = @(
     @{ Repo = 'yasb\config.yaml';               Live = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Repo = 'yasb\styles.css';                Live = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
     @{ Repo = 'translucenttb\settings.json';    Live = (Join-Path $env:LOCALAPPDATA 'Packages\28017CharlesMilette.TranslucentTB_v826wp6bftszj\RoamingState\settings.json') }
+    @{ Repo = 'flowlauncher\Themes\Gruvbox Soft Dark.xaml'; Live = (Join-Path $env:APPDATA 'FlowLauncher\Themes\Gruvbox Soft Dark.xaml') }
 )
 
 foreach ($item in $map) {

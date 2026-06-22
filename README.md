@@ -16,6 +16,7 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 | `yasb/styles.css` | YASB Gruvbox Soft Dark theme | `~/.config/yasb/styles.css` |
 | `windows-terminal/settings.json` | Windows Terminal profiles + Gruvbox schemes | `…/WindowsTerminal_*/LocalState/settings.json` |
 | `translucenttb/settings.json` | TranslucentTB config (fully transparent taskbar) | `…/TranslucentTB_*/RoamingState/settings.json` |
+| `flowlauncher/Themes/Gruvbox Soft Dark.xaml` | Flow Launcher Gruvbox theme (floating app launcher) | `%APPDATA%/FlowLauncher/Themes/` |
 
 ## Theme
 
@@ -28,6 +29,7 @@ Gruvbox Soft Dark throughout. Focused window border = Gruvbox orange (`#fe8019`)
 - [YASB](https://github.com/amnweb/yasb) — `winget install AmN.yasb`
 - [Windows Terminal](https://github.com/microsoft/terminal)
 - [TranslucentTB](https://github.com/TranslucentTB/TranslucentTB) — `winget install CharlesMilette.TranslucentTB` (transparent taskbar; `install.ps1` handles it)
+- [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) — `winget install Flow-Launcher.Flow-Launcher` (floating launcher on the Windows key; `install.ps1` applies the Gruvbox theme)
 - [PuTTY](https://www.putty.org/) (for `plink`, used by the serial console) — `winget install PuTTY.PuTTY`
 - WSL (Ubuntu) + [my neovim config](https://github.com/0xce3/nvim-config)
 - JetBrainsMono Nerd Font
@@ -69,6 +71,7 @@ powershell -ExecutionPolicy Bypass -File .\sync.ps1 "describe the change"
 | `Alt+Shift+X` | Snip overlay |
 | `Alt+Shift+C` | Snipping Tool app |
 | `Alt+Shift+T` | Toggle Windows taskbar |
+| `Win` | Flow Launcher (floating app/search launcher) |
 | `Alt+R` | Resize mode |
 | `Alt+F` | Fullscreen |
 | `Alt+Shift+R` | Reload GlazeWM config |

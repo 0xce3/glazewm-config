@@ -63,6 +63,37 @@ if (-not (Test-Path $startupLnk)) {
     Write-Host "OK:     TranslucentTB autostart -> $startupLnk" -ForegroundColor Green
 }
 
+# Install Flow Launcher (floating app launcher on the Windows key) if missing,
+# deploy the Gruvbox theme, and point its settings at it. Flow Launcher manages
+# its own start-at-login, so no extra shortcut is needed.
+if (-not (winget list --id Flow-Launcher.Flow-Launcher 2>$null | Select-String 'Flow')) {
+    Write-Host 'Installing Flow Launcher...' -ForegroundColor Cyan
+    winget install --id Flow-Launcher.Flow-Launcher --source winget `
+        --accept-package-agreements --accept-source-agreements --silent | Out-Null
+}
+
+$flowThemeDir = Join-Path $env:APPDATA 'FlowLauncher\Themes'
+$flowTheme = Join-Path $repo 'flowlauncher\Themes\Gruvbox Soft Dark.xaml'
+if (Test-Path $flowTheme) {
+    if (-not (Test-Path $flowThemeDir)) { New-Item -ItemType Directory -Path $flowThemeDir -Force | Out-Null }
+    Copy-Item $flowTheme (Join-Path $flowThemeDir 'Gruvbox Soft Dark.xaml') -Force
+    Write-Host "OK:     Flow Launcher theme -> $flowThemeDir" -ForegroundColor Green
+}
+
+# Patch the three settings we care about (theme, dark scheme, Windows-key hotkey)
+# without overwriting Flow Launcher's machine-local state. Flow must be closed.
+$flowSettings = Join-Path $env:APPDATA 'FlowLauncher\Settings\Settings.json'
+if (Test-Path $flowSettings) {
+    Stop-Process -Name 'Flow.Launcher' -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Milliseconds 800
+    $json = Get-Content $flowSettings -Raw | ConvertFrom-Json
+    $json.Theme = 'Gruvbox Soft Dark'
+    $json.ColorScheme = 'Dark'
+    $json.Hotkey = 'LWin'
+    $json | ConvertTo-Json -Depth 32 | Set-Content $flowSettings -Encoding UTF8
+    Write-Host "OK:     Flow Launcher settings (theme/dark/LWin hotkey)" -ForegroundColor Green
+}
+
 Write-Host ''
 Write-Host 'Done. Start GlazeWM + YASB, then reload GlazeWM with Alt+Shift+R.' -ForegroundColor Cyan
 Write-Host 'TranslucentTB starts at next login (or launch it now for a transparent taskbar).' -ForegroundColor Cyan
