@@ -125,7 +125,18 @@ while ($true) {
     Write-Host '  (beenden: Strg+C)' -ForegroundColor $DimColor
     Write-Host ''
 
-    & plink -serial $port -sercfg "$baud,8,n,1,N"
+    # Many embedded devices send 8-bit chars (e.g. the degree sign 0xB0) as
+    # Latin-1, not UTF-8. plink assumes UTF-8 by default, which garbles them in
+    # Windows Terminal. Tell plink the remote charset via a saved session it
+    # loads with -load. Change $SerialCharset to 'CP437' or 'Win1252' if your
+    # firmware uses a different code page.
+    $SerialCharset = 'ISO-8859-1:1998'
+    $sessionName   = 'GlazeSerial'
+    $sessionKey    = "HKCU:\Software\SimonTatham\PuTTY\Sessions\$sessionName"
+    if (-not (Test-Path $sessionKey)) { New-Item -Path $sessionKey -Force | Out-Null }
+    New-ItemProperty -Path $sessionKey -Name 'LineCodePage' -Value $SerialCharset -PropertyType String -Force | Out-Null
+
+    & plink -load $sessionName -serial $port -sercfg "$baud,8,n,1,N"
 
     Write-Host ''
     Write-Host ('  Verbindung zu {0} beendet.' -f $port) -ForegroundColor $AccentColor
