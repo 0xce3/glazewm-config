@@ -125,18 +125,53 @@ while ($true) {
     Write-Host '  (beenden: Strg+C)' -ForegroundColor $DimColor
     Write-Host ''
 
-    # Many embedded devices send 8-bit chars (e.g. the degree sign 0xB0) as
-    # Latin-1, not UTF-8. plink assumes UTF-8 by default, which garbles them in
-    # Windows Terminal. Tell plink the remote charset via a saved session it
-    # loads with -load. Change $SerialCharset to 'CP437' or 'Win1252' if your
-    # firmware uses a different code page.
-    $SerialCharset = 'ISO-8859-1:1998'
-    $sessionName   = 'GlazeSerial'
-    $sessionKey    = "HKCU:\Software\SimonTatham\PuTTY\Sessions\$sessionName"
-    if (-not (Test-Path $sessionKey)) { New-Item -Path $sessionKey -Force | Out-Null }
-    New-ItemProperty -Path $sessionKey -Name 'LineCodePage' -Value $SerialCharset -PropertyType String -Force | Out-Null
+    # Open the serial port directly via .NET instead of plink. plink only pipes
+    # raw bytes (no terminal emulation / charset translation), so 8-bit chars
+    # like the degree sign (0xB0) that firmware sends as Latin-1 come out
+    # garbled in the UTF-8 terminal. Here we decode the incoming bytes as
+    # Latin-1 and let the console re-encode them as UTF-8, so they render right.
+    # Change $SerialCharset to 'IBM437' (CP437) or 'Windows-1252' if needed.
+    $SerialCharset = 'ISO-8859-1'
 
-    & plink -load $sessionName -serial $port -sercfg "$baud,8,n,1,N"
+    [Console]::OutputEncoding   = [System.Text.Encoding]::UTF8
+    [Console]::TreatControlCAsInput = $true
+
+    $sp = New-Object System.IO.Ports.SerialPort($port, [int]$baud, `
+        [System.IO.Ports.Parity]::None, 8, [System.IO.Ports.StopBits]::One)
+    $sp.Handshake      = [System.IO.Ports.Handshake]::None
+    $sp.Encoding       = [System.Text.Encoding]::GetEncoding($SerialCharset)
+    $sp.ReadTimeout    = 50
+    $sp.ReadBufferSize = 65536
+    $sp.DtrEnable      = $true
+    $sp.RtsEnable      = $true
+
+    try {
+        $sp.Open()
+        while ($sp.IsOpen) {
+            # Drain whatever the device has sent and print it (Latin-1 -> UTF-8).
+            $chunk = $sp.ReadExisting()
+            if ($chunk.Length -gt 0) { [Console]::Write($chunk) }
+
+            # Forward keystrokes to the device; Ctrl+C ends the session.
+            while ([Console]::KeyAvailable) {
+                $k = [Console]::ReadKey($true)
+                if (($k.Modifiers -band [ConsoleModifiers]::Control) -and $k.Key -eq [ConsoleKey]::C) {
+                    $sp.Close()
+                    break
+                }
+                if ($k.KeyChar) { $sp.Write([string]$k.KeyChar) }
+            }
+
+            Start-Sleep -Milliseconds 5
+        }
+    } catch {
+        Write-Host ''
+        Write-Host ('  Fehler: {0}' -f $_.Exception.Message) -ForegroundColor $AccentColor
+    } finally {
+        if ($sp -and $sp.IsOpen) { $sp.Close() }
+        $sp.Dispose()
+        [Console]::TreatControlCAsInput = $false
+    }
 
     Write-Host ''
     Write-Host ('  Verbindung zu {0} beendet.' -f $port) -ForegroundColor $AccentColor
