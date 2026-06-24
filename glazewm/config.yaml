@@ -280,11 +280,6 @@ keybindings:
   - commands: ['shell-exec wt']
     bindings: ['alt+enter']
 
-  # Bring Microsoft Teams (preferring a running meeting/call window) to the
-  # foreground from any workspace. Alt+M. GlazeWM then follows to its workspace.
-  - commands: ['shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\focus-app.ps1" ms-teams']
-    bindings: ['alt+m']
-
   # Chrome. Alt+Shift+Enter -> opens and auto-moves to WS 3 via window_rule.
   - commands: ['shell-exec cmd /c start chrome']
     bindings: ['alt+shift+enter']
