@@ -18,6 +18,7 @@ $map = @(
     @{ Src = 'glazewm\config.yaml';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\config.yaml') }
     @{ Src = 'glazewm\serial-menu.ps1';        Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-menu.ps1') }
     @{ Src = 'glazewm\taskbar.ps1';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
+    @{ Src = 'glazewm\focus-app.ps1';          Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\focus-app.ps1') }
     @{ Src = 'glazewm\glaze-layout.ps1';       Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Src = 'yasb\config.yaml';               Dst = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Src = 'yasb\styles.css';                Dst = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }

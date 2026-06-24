@@ -12,6 +12,7 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 | `glazewm/config.yaml` | GlazeWM window manager config (workspaces, keybinds, gaps, rules) | `~/.glzr/glazewm/config.yaml` |
 | `glazewm/serial-menu.ps1` | Curses-style serial console launcher (plink, port/baud picker) | `~/.glzr/glazewm/serial-menu.ps1` |
 | `glazewm/taskbar.ps1` | Hide/show/toggle the Windows taskbar | `~/.glzr/glazewm/taskbar.ps1` |
+| `glazewm/focus-app.ps1` | Bring an app (Teams meeting) to the front from any workspace | `~/.glzr/glazewm/focus-app.ps1` |
 | `yasb/config.yaml` | YASB status bar layout | `~/.config/yasb/config.yaml` |
 | `yasb/styles.css` | YASB Gruvbox Soft Dark theme | `~/.config/yasb/styles.css` |
 | `windows-terminal/settings.json` | Windows Terminal profiles + Gruvbox schemes | `…/WindowsTerminal_*/LocalState/settings.json` |
@@ -68,6 +69,7 @@ powershell -ExecutionPolicy Bypass -File .\sync.ps1 "describe the change"
 | `Alt+Enter` | Windows Terminal |
 | `Alt+Shift+Enter` | Chrome |
 | `Alt+Shift+S` | Serial console |
+| `Alt+M` | Bring Microsoft Teams (meeting window) to the front |
 | `Alt+Shift+X` | Snip overlay |
 | `Alt+Shift+C` | Snipping Tool app |
 | `Alt+Shift+T` | Toggle Windows taskbar |
