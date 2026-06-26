@@ -122,7 +122,8 @@ while ($true) {
     Draw-Box -Title 'SERIAL CONSOLE'
     Write-Host ''
     Write-Host ("  Verbinde mit {0} @ {1} 8N1 ..." -f $port, $baud) -ForegroundColor $TitleColor
-    Write-Host '  (beenden: Strg+C)' -ForegroundColor $DimColor
+    Write-Host '  PgUp / Strg+Up = Scroll-Modus (j/k  PgUp/PgDn  gg/G  q=live)' -ForegroundColor $DimColor
+    Write-Host '  Strg+C = beenden' -ForegroundColor $DimColor
     Write-Host ''
 
     # Open the serial port directly via .NET instead of plink. plink only pipes
@@ -145,22 +146,123 @@ while ($true) {
     $sp.DtrEnable      = $true
     $sp.RtsEnable      = $true
 
+    # Scrollback buffer (one entry per output line) so we can navigate history
+    # with the keyboard. Live output is printed raw (ANSI preserved); a separate
+    # "scroll mode" freezes the view and renders from this buffer.
+    $esc      = [char]27
+    $buffer   = New-Object 'System.Collections.Generic.List[string]'
+    $maxLines = 50000
+    $partial  = ''
+    $scroll   = $false
+    $top      = 0
+    $pendingG = $false
+    $needDraw = $false
+
+    function Get-ViewHeight { [Math]::Max(1, [Console]::WindowHeight - 1) }
+    function Get-Bottom([int]$count) { [Math]::Max(0, $count - (Get-ViewHeight)) }
+
+    # Render the scroll-mode frame from the buffer starting at line $topIdx.
+    function Draw-Scroll($buf, [int]$topIdx, [char]$esc) {
+        $h = Get-ViewHeight
+        $w = [Math]::Max(1, [Console]::WindowWidth - 1)
+        $count = $buf.Count
+        $sb = New-Object System.Text.StringBuilder
+        [void]$sb.Append("$esc[H$esc[2J")
+        for ($i = 0; $i -lt $h; $i++) {
+            $idx = $topIdx + $i
+            if ($idx -ge 0 -and $idx -lt $count) {
+                $line = $buf[$idx]
+                if ($line.Length -gt $w) { $line = $line.Substring(0, $w) }
+                [void]$sb.Append($line)
+            }
+            [void]$sb.Append("$esc[0m`r`n")
+        }
+        $last = [Math]::Min($topIdx + $h, $count)
+        [void]$sb.Append(("$esc[7m -- SCROLL --  {0}-{1}/{2}   j/k  PgUp/PgDn  Ctrl+U/D  gg/G  q=live $esc[0m" -f ($topIdx + 1), $last, $count))
+        [Console]::Write($sb.ToString())
+    }
+
+    # Leave scroll mode: redraw the tail of the buffer and resume live output.
+    function Restore-Live($buf, [char]$esc, [string]$partial) {
+        $h = Get-ViewHeight
+        $start = [Math]::Max(0, $buf.Count - $h)
+        $sb = New-Object System.Text.StringBuilder
+        [void]$sb.Append("$esc[H$esc[2J")
+        for ($i = $start; $i -lt $buf.Count; $i++) { [void]$sb.Append($buf[$i]); [void]$sb.Append("`r`n") }
+        if ($partial) { [void]$sb.Append($partial) }
+        [Console]::Write($sb.ToString())
+    }
+
     try {
         $sp.Open()
         while ($sp.IsOpen) {
-            # Drain whatever the device has sent and print it (Latin-1 -> UTF-8).
+            # Drain the device. Always buffer complete lines; print only in live.
             $chunk = $sp.ReadExisting()
-            if ($chunk.Length -gt 0) { [Console]::Write($chunk) }
+            if ($chunk.Length -gt 0) {
+                if (-not $scroll) { [Console]::Write($chunk) }
+                $partial += $chunk
+                while (($nl = $partial.IndexOf("`n")) -ge 0) {
+                    [void]$buffer.Add($partial.Substring(0, $nl).TrimEnd("`r"))
+                    $partial = $partial.Substring($nl + 1)
+                }
+                if ($buffer.Count -gt $maxLines) { $buffer.RemoveRange(0, $buffer.Count - $maxLines) }
+            }
 
-            # Forward keystrokes to the device; Ctrl+C ends the session.
             while ([Console]::KeyAvailable) {
                 $k = [Console]::ReadKey($true)
-                if (($k.Modifiers -band [ConsoleModifiers]::Control) -and $k.Key -eq [ConsoleKey]::C) {
-                    $sp.Close()
-                    break
+                $ctrl = ($k.Modifiers -band [ConsoleModifiers]::Control) -ne 0
+
+                if ($ctrl -and $k.Key -eq [ConsoleKey]::C) { $sp.Close(); break }
+
+                if (-not $scroll) {
+                    # Live mode: PgUp / Ctrl+Up enter scroll mode; other printable
+                    # keys go to the device (special keys have KeyChar = NUL).
+                    if ($k.Key -eq [ConsoleKey]::PageUp -or ($ctrl -and $k.Key -eq [ConsoleKey]::UpArrow)) {
+                        $scroll = $true
+                        $top = [Math]::Max(0, (Get-Bottom $buffer.Count) - (Get-ViewHeight))
+                        $needDraw = $true
+                    } elseif ($k.KeyChar -ne [char]0) {
+                        $sp.Write([string]$k.KeyChar)
+                    }
+                } else {
+                    # Scroll mode: vim-style navigation over the buffer.
+                    $bottom = Get-Bottom $buffer.Count
+                    $page = Get-ViewHeight
+                    $half = [Math]::Max(1, [int]($page / 2))
+                    $isG = ($k.KeyChar -eq 'g')
+                    if (-not $isG) { $pendingG = $false }
+
+                    switch ($k.Key) {
+                        ([ConsoleKey]::Escape)   { $scroll = $false }
+                        ([ConsoleKey]::PageUp)   { $top = [Math]::Max(0, $top - $page); $needDraw = $true }
+                        ([ConsoleKey]::PageDown) { $top = [Math]::Min($bottom, $top + $page); $needDraw = $true }
+                        ([ConsoleKey]::UpArrow)  { $top = [Math]::Max(0, $top - 1); $needDraw = $true }
+                        ([ConsoleKey]::DownArrow){ $top = [Math]::Min($bottom, $top + 1); $needDraw = $true }
+                        ([ConsoleKey]::Home)     { $top = 0; $needDraw = $true }
+                        ([ConsoleKey]::End)      { $top = $bottom; $needDraw = $true }
+                        default {
+                            if ($ctrl -and $k.Key -eq [ConsoleKey]::U) { $top = [Math]::Max(0, $top - $half); $needDraw = $true }
+                            elseif ($ctrl -and $k.Key -eq [ConsoleKey]::D) { $top = [Math]::Min($bottom, $top + $half); $needDraw = $true }
+                            elseif ($ctrl -and $k.Key -eq [ConsoleKey]::B) { $top = [Math]::Max(0, $top - $page); $needDraw = $true }
+                            elseif ($ctrl -and $k.Key -eq [ConsoleKey]::F) { $top = [Math]::Min($bottom, $top + $page); $needDraw = $true }
+                            else {
+                                switch ($k.KeyChar) {
+                                    'k' { $top = [Math]::Max(0, $top - 1); $needDraw = $true }
+                                    'j' { $top = [Math]::Min($bottom, $top + 1); $needDraw = $true }
+                                    'G' { $top = $bottom; $needDraw = $true }
+                                    'g' { if ($pendingG) { $top = 0; $pendingG = $false; $needDraw = $true } else { $pendingG = $true } }
+                                    'q' { $scroll = $false }
+                                    'i' { $scroll = $false }
+                                }
+                            }
+                        }
+                    }
+
+                    if (-not $scroll) { Restore-Live $buffer $esc $partial }
                 }
-                if ($k.KeyChar) { $sp.Write([string]$k.KeyChar) }
             }
+
+            if ($scroll -and $needDraw) { Draw-Scroll $buffer $top $esc; $needDraw = $false }
 
             Start-Sleep -Milliseconds 5
         }
