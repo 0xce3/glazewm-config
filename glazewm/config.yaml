@@ -299,6 +299,10 @@ keybindings:
   - commands: ['shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\glaze-layout.ps1" home']
     bindings: ['alt+shift+z']
 
+  # Swap the two main monitors (everything on monitor 0 <-> monitor 1). Toggle.
+  - commands: ['shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\glaze-swap.ps1"']
+    bindings: ['alt+shift+m']
+
   # Toggle the Windows taskbar on/off. Alt+Shift+T (T = taskbar).
   - commands: ['shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\taskbar.ps1" toggle']
     bindings: ['alt+shift+t']

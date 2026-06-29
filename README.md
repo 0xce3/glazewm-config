@@ -70,6 +70,7 @@ powershell -ExecutionPolicy Bypass -File .\sync.ps1 "describe the change"
 | `Alt+Shift+S` | Serial console |
 | `Alt+Shift+X` | Snip overlay |
 | `Alt+Shift+C` | Snipping Tool app |
+| `Alt+Shift+M` | Swap the two main monitors (everything on 0 ↔ 1) |
 | `Alt+Shift+T` | Toggle Windows taskbar |
 | `Win` | Flow Launcher (floating app/search launcher) |
 | `Alt+R` | Resize mode |
