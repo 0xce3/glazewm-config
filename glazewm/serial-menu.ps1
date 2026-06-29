@@ -157,6 +157,7 @@ while ($true) {
     $top      = 0
     $pendingG = $false
     $needDraw = $false
+    $pendingLive = ''   # output that arrives while in scroll mode (flushed on exit)
 
     function Get-ViewHeight { [Math]::Max(1, [Console]::WindowHeight - 1) }
     function Get-Bottom([int]$count) { [Math]::Max(0, $count - (Get-ViewHeight)) }
@@ -182,16 +183,10 @@ while ($true) {
         [Console]::Write($sb.ToString())
     }
 
-    # Leave scroll mode: redraw the tail of the buffer and resume live output.
-    function Restore-Live($buf, [char]$esc, [string]$partial) {
-        $h = Get-ViewHeight
-        $start = [Math]::Max(0, $buf.Count - $h)
-        $sb = New-Object System.Text.StringBuilder
-        [void]$sb.Append("$esc[H$esc[2J")
-        for ($i = $start; $i -lt $buf.Count; $i++) { [void]$sb.Append($buf[$i]); [void]$sb.Append("`r`n") }
-        if ($partial) { [void]$sb.Append($partial) }
-        [Console]::Write($sb.ToString())
-    }
+    # Scroll mode runs on the alternate screen buffer (like less/vim): it has no
+    # scrollback, so navigating never duplicates output into the live terminal.
+    $altEnter = "$esc[?1049h$esc[?25l"   # enter alt screen + hide cursor
+    $altLeave = "$esc[?25h$esc[?1049l"   # show cursor + leave alt screen (restores live)
 
     try {
         $sp.Open()
@@ -199,7 +194,7 @@ while ($true) {
             # Drain the device. Always buffer complete lines; print only in live.
             $chunk = $sp.ReadExisting()
             if ($chunk.Length -gt 0) {
-                if (-not $scroll) { [Console]::Write($chunk) }
+                if (-not $scroll) { [Console]::Write($chunk) } else { $pendingLive += $chunk }
                 $partial += $chunk
                 while (($nl = $partial.IndexOf("`n")) -ge 0) {
                     [void]$buffer.Add($partial.Substring(0, $nl).TrimEnd("`r"))
@@ -219,6 +214,8 @@ while ($true) {
                     # keys go to the device (special keys have KeyChar = NUL).
                     if ($k.Key -eq [ConsoleKey]::PageUp -or ($ctrl -and $k.Key -eq [ConsoleKey]::UpArrow)) {
                         $scroll = $true
+                        $pendingLive = ''
+                        [Console]::Write($altEnter)
                         $top = [Math]::Max(0, (Get-Bottom $buffer.Count) - (Get-ViewHeight))
                         $needDraw = $true
                     } elseif ($k.KeyChar -ne [char]0) {
@@ -258,7 +255,12 @@ while ($true) {
                         }
                     }
 
-                    if (-not $scroll) { Restore-Live $buffer $esc $partial }
+                    # Left scroll mode: drop back to the live screen (restored as
+                    # it was) and flush whatever arrived while we were scrolling.
+                    if (-not $scroll) {
+                        [Console]::Write($altLeave)
+                        if ($pendingLive) { [Console]::Write($pendingLive); $pendingLive = '' }
+                    }
                 }
             }
 
@@ -270,6 +272,7 @@ while ($true) {
         Write-Host ''
         Write-Host ('  Fehler: {0}' -f $_.Exception.Message) -ForegroundColor $AccentColor
     } finally {
+        if ($scroll) { [Console]::Write($altLeave) }   # never leave the alt screen on
         if ($sp -and $sp.IsOpen) { $sp.Close() }
         $sp.Dispose()
         [Console]::TreatControlCAsInput = $false
