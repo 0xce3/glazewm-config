@@ -158,12 +158,32 @@ while ($true) {
     $pendingG = $false
     $needDraw = $false
     $pendingLive = ''   # output that arrives while in scroll mode (flushed on exit)
+    $query    = ''                 # active search term in scroll mode
+    $hits     = $null              # buffer line indices matching $query
+    $matchIdx = 0                  # which match is currently selected
 
     function Get-ViewHeight { [Math]::Max(1, [Console]::WindowHeight - 1) }
     function Get-Bottom([int]$count) { [Math]::Max(0, $count - (Get-ViewHeight)) }
 
-    # Render the scroll-mode frame from the buffer starting at line $topIdx.
-    function Draw-Scroll($buf, [int]$topIdx, [char]$esc) {
+    # All buffer line indices that contain $q (case-insensitive).
+    function Find-Matches($buf, [string]$q) {
+        $res = New-Object System.Collections.Generic.List[int]
+        if (-not [string]::IsNullOrEmpty($q)) {
+            for ($i = 0; $i -lt $buf.Count; $i++) {
+                if ($buf[$i].IndexOf($q, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) { [void]$res.Add($i) }
+            }
+        }
+        return $res
+    }
+
+    # Scroll position that puts buffer line $line near the top of the view.
+    function Get-TopForLine([int]$line, [int]$count) {
+        [Math]::Min((Get-Bottom $count), [Math]::Max(0, $line - 2))
+    }
+
+    # Render the scroll-mode frame. $hlLine is highlighted (current search hit),
+    # $status is the bottom bar text.
+    function Draw-Scroll($buf, [int]$topIdx, [char]$esc, [string]$status, [int]$hlLine) {
         $h = Get-ViewHeight
         $w = [Math]::Max(1, [Console]::WindowWidth - 1)
         $count = $buf.Count
@@ -174,12 +194,12 @@ while ($true) {
             if ($idx -ge 0 -and $idx -lt $count) {
                 $line = $buf[$idx]
                 if ($line.Length -gt $w) { $line = $line.Substring(0, $w) }
-                [void]$sb.Append($line)
+                if ($idx -eq $hlLine) { [void]$sb.Append("$esc[7m$line$esc[0m") }
+                else { [void]$sb.Append($line) }
             }
             [void]$sb.Append("$esc[0m`r`n")
         }
-        $last = [Math]::Min($topIdx + $h, $count)
-        [void]$sb.Append(("$esc[7m -- SCROLL --  {0}-{1}/{2}   j/k  PgUp/PgDn  Ctrl+U/D  gg/G  q=live $esc[0m" -f ($topIdx + 1), $last, $count))
+        [void]$sb.Append("$esc[7m $status $esc[0m")
         [Console]::Write($sb.ToString())
     }
 
@@ -196,11 +216,20 @@ while ($true) {
             if ($chunk.Length -gt 0) {
                 if (-not $scroll) { [Console]::Write($chunk) } else { $pendingLive += $chunk }
                 $partial += $chunk
-                while (($nl = $partial.IndexOf("`n")) -ge 0) {
-                    [void]$buffer.Add($partial.Substring(0, $nl).TrimEnd("`r"))
-                    $partial = $partial.Substring($nl + 1)
+
+                # A clear-screen (e.g. the `clear` command -> ESC[2J / ESC[3J, or
+                # a form feed) wipes the live screen, so wipe our scrollback too.
+                if (($chunk -match "$esc\[[23]J") -or ($chunk.IndexOf([char]12) -ge 0)) {
+                    $buffer.Clear(); $partial = ''
+                    $hits = $null; $query = ''; $top = 0
+                    if ($scroll) { $needDraw = $true }
+                } else {
+                    while (($nl = $partial.IndexOf("`n")) -ge 0) {
+                        [void]$buffer.Add($partial.Substring(0, $nl).TrimEnd("`r"))
+                        $partial = $partial.Substring($nl + 1)
+                    }
+                    if ($buffer.Count -gt $maxLines) { $buffer.RemoveRange(0, $buffer.Count - $maxLines) }
                 }
-                if ($buffer.Count -gt $maxLines) { $buffer.RemoveRange(0, $buffer.Count - $maxLines) }
             }
 
             while ([Console]::KeyAvailable) {
@@ -215,6 +244,7 @@ while ($true) {
                     if ($k.Key -eq [ConsoleKey]::PageUp -or ($ctrl -and $k.Key -eq [ConsoleKey]::UpArrow)) {
                         $scroll = $true
                         $pendingLive = ''
+                        $query = ''; $hits = $null; $matchIdx = 0
                         [Console]::Write($altEnter)
                         $top = [Math]::Max(0, (Get-Bottom $buffer.Count) - (Get-ViewHeight))
                         $needDraw = $true
@@ -250,6 +280,42 @@ while ($true) {
                                     'g' { if ($pendingG) { $top = 0; $pendingG = $false; $needDraw = $true } else { $pendingG = $true } }
                                     'q' { $scroll = $false }
                                     'i' { $scroll = $false }
+                                    'n' {
+                                        if ($hits -and $hits.Count -gt 0) {
+                                            $matchIdx = ($matchIdx + 1) % $hits.Count
+                                            $top = Get-TopForLine $hits[$matchIdx] $buffer.Count
+                                            $needDraw = $true
+                                        }
+                                    }
+                                    'N' {
+                                        if ($hits -and $hits.Count -gt 0) {
+                                            $matchIdx = ($matchIdx - 1 + $hits.Count) % $hits.Count
+                                            $top = Get-TopForLine $hits[$matchIdx] $buffer.Count
+                                            $needDraw = $true
+                                        }
+                                    }
+                                    '/' {
+                                        # Read a search term at the bottom bar (Enter=go, Esc=cancel).
+                                        $q = ''
+                                        $cur = if ($hits -and $hits.Count -gt 0) { $hits[$matchIdx] } else { -1 }
+                                        while ($true) {
+                                            Draw-Scroll $buffer $top $esc ("/$q   [Enter=suchen  Esc=abbrechen]") $cur
+                                            $ik = [Console]::ReadKey($true)
+                                            if ($ik.Key -eq [ConsoleKey]::Enter) { break }
+                                            elseif ($ik.Key -eq [ConsoleKey]::Escape) { $q = $null; break }
+                                            elseif ($ik.Key -eq [ConsoleKey]::Backspace) { if ($q.Length -gt 0) { $q = $q.Substring(0, $q.Length - 1) } }
+                                            elseif ($ik.KeyChar -ne [char]0 -and -not [char]::IsControl($ik.KeyChar)) { $q += $ik.KeyChar }
+                                        }
+                                        if ($q) {
+                                            $query = $q
+                                            $hits = Find-Matches $buffer $query
+                                            if ($hits.Count -gt 0) {
+                                                $matchIdx = 0
+                                                $top = Get-TopForLine $hits[0] $buffer.Count
+                                            }
+                                        }
+                                        $needDraw = $true
+                                    }
                                 }
                             }
                         }
@@ -264,7 +330,21 @@ while ($true) {
                 }
             }
 
-            if ($scroll -and $needDraw) { Draw-Scroll $buffer $top $esc; $needDraw = $false }
+            if ($scroll -and $needDraw) {
+                $count = $buffer.Count
+                $hl = -1
+                if ($query -and $hits -and $hits.Count -gt 0) {
+                    $status = ("/{0}   Treffer {1}/{2}   n/N=naechster/vorh.  /=neu  q=live" -f $query, ($matchIdx + 1), $hits.Count)
+                    $hl = $hits[$matchIdx]
+                } elseif ($query) {
+                    $status = "/$query   kein Treffer   /=neu  q=live"
+                } else {
+                    $last = [Math]::Min($top + (Get-ViewHeight), $count)
+                    $status = ("-- SCROLL --  {0}-{1}/{2}   j/k PgUp/PgDn Ctrl+U/D gg/G  /=Suche  q=live" -f ($top + 1), $last, $count)
+                }
+                Draw-Scroll $buffer $top $esc $status $hl
+                $needDraw = $false
+            }
 
             Start-Sleep -Milliseconds 5
         }
