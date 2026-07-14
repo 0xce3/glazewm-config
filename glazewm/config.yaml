@@ -33,17 +33,17 @@ gaps:
   scale_with_dpi: true
 
   # Gap between adjacent tiled windows.
-  inner_gap: '12px'
+  inner_gap: '5px'
 
   # Gap between windows and the screen edge. YASB reserves its own height at
   # the top (work area already starts below the bar), so `top` only needs the
   # same 12px breathing room as the other sides — NOT bar-height + padding,
   # otherwise the gap doubles. If windows ever overlap the bar, bump `top` up.
   outer_gap:
-    top: '12px'
-    right: '12px'
-    bottom: '12px'
-    left: '12px'
+    top: '5px'
+    right: '5px'
+    bottom: '5px'
+    left: '5px'
 
 window_effects:
   # Focused window: bright "hacker green" border so the active pane is obvious.
@@ -93,33 +93,33 @@ workspaces:
   # --- Monitor 0: main work (dev) ---
   - name: '1'
     display_name: '1: term'
-    bind_to_monitor: 0
+    bind_to_monitor: 1
     keep_alive: true
   - name: '2'
     display_name: '2: serial'
-    bind_to_monitor: 0
+    bind_to_monitor: 1
     keep_alive: true
   - name: '3'
     display_name: '3: web'
-    bind_to_monitor: 0
+    bind_to_monitor: 1
     keep_alive: true
   - name: '4'
     display_name: '4: code'
-    bind_to_monitor: 0
+    bind_to_monitor: 1
     keep_alive: true
 
   # --- Monitor 1: secondary (comms) ---
   - name: '5'
     display_name: '5: teams'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
   - name: '6'
     display_name: '6: slack'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
   - name: '7'
     display_name: '7: mail'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
 
   # --- Misc workspaces (web / extra) ---
@@ -131,10 +131,10 @@ workspaces:
   # so 8/9 are created on demand and always fall back cleanly.
   - name: '8'
     display_name: '8: misc'
-    bind_to_monitor: 1
+    bind_to_monitor: 2
   - name: '9'
     display_name: '9'
-    bind_to_monitor: 1
+    bind_to_monitor: 2
 
 window_rules:
   # --- Auto-assign apps to their home workspace ---

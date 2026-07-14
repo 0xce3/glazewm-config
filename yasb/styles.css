@@ -49,7 +49,7 @@
 /* Bar - floating, 12px gap left/right to match GlazeWM window gaps */
 .yasb-bar {
     background-color: var(--yasb-bar-bg);
-    margin: 0 12px;
+    margin: 0 5px;
     padding: 0px 8px;
     border-radius: 6px;
 }
