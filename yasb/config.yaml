@@ -43,10 +43,9 @@ bars:
       center:
       - clock
       right:
+      - jlink_menu
+      - jlink_status_active
       - jlink_status
-      - jlink_remote
-      - jlink_gdb
-      - jlink_stop
       - systray
       - wifi
       - bluetooth
@@ -57,55 +56,75 @@ widgets:
     type: yasb.custom.CustomWidget
     options:
       class_name: jlink-status
-      label: '<span class="icon">󰘳</span>{data[label]}'
+      label: '<span class="icon">J</span>{data[label]}'
       label_alt: '{data[status]} · {data[device]}'
       label_placeholder: J-Link
       tooltip: true
       tooltip_label: '{data[status]} | Target: {data[device]} | Remote: {data[remote_port]} | GDB: {data[gdb_port]}'
       exec_options:
-        run_cmd: py -3 %USERPROFILE%\.config\yasb\jlink-control.py status
+        run_cmd: py -3 %USERPROFILE%\.config\yasb\jlink-control.py status --view inactive
         run_interval: 1000
         return_format: json
         use_shell: true
         encoding: utf-8
+        hide_empty: true
       callbacks:
         on_left: toggle_label
         on_middle: do_nothing
         on_right: do_nothing
-  jlink_remote:
+  jlink_status_active:
     type: yasb.custom.CustomWidget
     options:
-      class_name: jlink-remote
-      label: '<span class="icon">R</span>'
-      label_placeholder: R
+      class_name: jlink-status-active
+      label: '<span class="icon">J</span>{data[label]}'
+      label_alt: '{data[status]} · {data[device]}'
+      label_placeholder: J-Link
+      tooltip: true
+      tooltip_label: '{data[status]} | Target: {data[device]} | Remote: {data[remote_port]} | GDB: {data[gdb_port]}'
       exec_options:
-        run_once: true
+        run_cmd: py -3 %USERPROFILE%\.config\yasb\jlink-control.py status --view active
+        run_interval: 1000
+        return_format: json
+        use_shell: true
+        encoding: utf-8
+        hide_empty: true
       callbacks:
-        on_left: 'exec py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" toggle-remote'
+        on_left: toggle_label
         on_middle: do_nothing
         on_right: do_nothing
-  jlink_gdb:
-    type: yasb.custom.CustomWidget
+  jlink_menu:
+    type: yasb.home.HomeWidget
     options:
-      class_name: jlink-gdb
-      label: '<span class="icon">G</span>'
-      label_placeholder: G
-      exec_options:
-        run_once: true
+      label: '<span class="jlink-menu-arrow"></span>'
+      menu_list:
+      - title: Remote umschalten
+        command: cmd.exe
+        args:
+        - /c
+        - 'py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" toggle-remote'
+      - title: GDB starten ...
+        command: cmd.exe
+        args:
+        - /c
+        - 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.config\yasb\jlink-target-picker.ps1"'
+      - separator: true
+      - title: Alle J-Link Server stoppen
+        command: cmd.exe
+        args:
+        - /c
+        - 'py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" stop'
+      system_menu: false
+      power_menu: false
+      blur: true
+      round_corners: true
+      round_corners_type: small
+      border_color: System
+      alignment: left
+      direction: down
+      offset_top: 6
+      offset_left: 0
       callbacks:
-        on_left: 'exec powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.config\yasb\jlink-target-picker.ps1"'
-        on_middle: do_nothing
-        on_right: do_nothing
-  jlink_stop:
-    type: yasb.custom.CustomWidget
-    options:
-      class_name: jlink-stop
-      label: '<span class="icon">󰓛</span>'
-      label_placeholder: X
-      exec_options:
-        run_once: true
-      callbacks:
-        on_left: 'exec py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" stop'
+        on_left: toggle_menu
         on_middle: do_nothing
         on_right: do_nothing
   home:

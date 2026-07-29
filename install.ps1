@@ -85,6 +85,7 @@ Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-jlink.txt') 
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-monitor.py') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\jlink-manager.py') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $env:USERPROFILE '.config\yasb\jlink-menu.ps1') -Force -ErrorAction SilentlyContinue
 
 # Install pySerial's ready-made miniterm.
 $serialRequirements = Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-serial.txt'

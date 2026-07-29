@@ -165,9 +165,7 @@
 .bluetooth-widget .icon,
 .notification-widget .icon,
 .jlink-status .icon,
-.jlink-remote .icon,
-.jlink-gdb .icon,
-.jlink-stop .icon {
+.jlink-status-active .icon {
     font-family: "JetBrainsMono NFP";
 }
 
@@ -177,67 +175,51 @@
     padding-bottom: 2px;
 }
 
-/* J-Link server controls: status | Remote | GDB | stop */
-.jlink-status {
+/* J-Link server status and context-menu trigger */
+.jlink-status,
+.jlink-status-active {
     background-color: transparent;
-    margin-left: 4px;
-    border-radius: 4px 0 0 4px;
-}
-
-.custom-widget.jlink-status .widget-container:hover,
-.custom-widget.jlink-remote .widget-container:hover,
-.custom-widget.jlink-gdb .widget-container:hover,
-.custom-widget.jlink-stop .widget-container:hover {
-    background-color: var(--yasb-white-alpha-15);
-}
-
-.jlink-status .icon {
-    color: #fabd2f;
-    margin-right: 4px;
-}
-
-.custom-widget.jlink-remote,
-.custom-widget.jlink-gdb,
-.custom-widget.jlink-stop {
     padding-left: 0;
     padding-right: 0;
     margin-left: 0;
-    border-radius: 0;
-    background-color: transparent;
-    border-left: 1px solid var(--yasb-white-alpha-10);
-}
-
-.custom-widget.jlink-remote .widget-container,
-.custom-widget.jlink-gdb .widget-container,
-.custom-widget.jlink-stop .widget-container {
-    min-width: 18px;
-    padding-left: 5px;
-    padding-right: 5px;
-}
-
-.custom-widget.jlink-remote .icon,
-.custom-widget.jlink-gdb .icon,
-.custom-widget.jlink-stop .icon {
-    font-family: var(--icons-font-fallback);
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.custom-widget.jlink-remote .icon {
-    color: #83a598;
-}
-
-.custom-widget.jlink-gdb .icon {
-    color: #b8bb26;
-}
-
-.custom-widget.jlink-stop {
-    border-radius: 0 4px 4px 0;
     margin-right: 4px;
+    border-radius: 4px;
 }
 
-.custom-widget.jlink-stop .icon {
-    color: #fb4934;
+.custom-widget.jlink-status .widget-container,
+.custom-widget.jlink-status-active .widget-container {
+    padding-left: 7px;
+    padding-right: 7px;
+}
+
+.custom-widget.jlink-status .widget-container:hover,
+.custom-widget.jlink-status-active .widget-container:hover {
+    background-color: var(--yasb-white-alpha-15);
+}
+
+.jlink-status .icon,
+.jlink-status-active .icon {
+    color: var(--yasb-icon-fg);
+    font-size: 16px;
+    font-weight: 700;
+    min-width: 18px;
+    padding-left: 2px;
+    padding-right: 2px;
+    margin-right: 2px;
+}
+
+.jlink-status-active .label {
+    color: #b8bb26;
+    font-weight: 700;
+    text-shadow: 0 0 4px rgba(184, 187, 38, 0.9),
+                 0 0 8px rgba(184, 187, 38, 0.55);
+}
+
+.home-widget .jlink-menu-arrow {
+    color: var(--yasb-icon-fg);
+    font-family: "JetBrainsMono NFP";
+    font-size: 11px;
+    min-width: 12px;
 }
 
 /* Home Menu */
