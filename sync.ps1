@@ -29,13 +29,14 @@ $forbiddenPatterns = @(
 # Serial profile or color schemes, edit the repo template manually.
 $map = @(
     @{ Repo = 'glazewm\config.yaml';            Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\config.yaml') }
-    @{ Repo = 'glazewm\jlink-manager.py';        Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\jlink-manager.py') }
-    @{ Repo = 'glazewm\requirements-tui.txt';   Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') }
+    @{ Repo = 'glazewm\requirements-serial.txt'; Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-serial.txt') }
     @{ Repo = 'glazewm\taskbar.ps1';            Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
     @{ Repo = 'glazewm\glaze-layout.ps1';       Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Repo = 'glazewm\glaze-swap.ps1';         Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
     @{ Repo = 'yasb\config.yaml';               Live = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Repo = 'yasb\styles.css';                Live = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
+    @{ Repo = 'yasb\jlink-control.py';           Live = (Join-Path $env:USERPROFILE '.config\yasb\jlink-control.py') }
+    @{ Repo = 'yasb\jlink-target-picker.ps1';    Live = (Join-Path $env:USERPROFILE '.config\yasb\jlink-target-picker.ps1') }
     @{ Repo = 'translucenttb\settings.json';    Live = (Join-Path $env:LOCALAPPDATA 'Packages\28017CharlesMilette.TranslucentTB_v826wp6bftszj\RoamingState\settings.json') }
     @{ Repo = 'flowlauncher\Themes\Gruvbox Soft Dark.xaml'; Live = (Join-Path $env:APPDATA 'FlowLauncher\Themes\Gruvbox Soft Dark.xaml') }
 )

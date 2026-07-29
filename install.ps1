@@ -47,13 +47,14 @@ if (-not $jetBrainsMonoInstalled) {
 
 $map = @(
     @{ Src = 'glazewm\config.yaml';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\config.yaml') }
-    @{ Src = 'glazewm\jlink-manager.py';        Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\jlink-manager.py') }
-    @{ Src = 'glazewm\requirements-tui.txt';   Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') }
+    @{ Src = 'glazewm\requirements-serial.txt'; Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-serial.txt') }
     @{ Src = 'glazewm\taskbar.ps1';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
     @{ Src = 'glazewm\glaze-layout.ps1';       Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Src = 'glazewm\glaze-swap.ps1';         Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
     @{ Src = 'yasb\config.yaml';               Dst = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Src = 'yasb\styles.css';                Dst = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
+    @{ Src = 'yasb\jlink-control.py';           Dst = (Join-Path $env:USERPROFILE '.config\yasb\jlink-control.py') }
+    @{ Src = 'yasb\jlink-target-picker.ps1';    Dst = (Join-Path $env:USERPROFILE '.config\yasb\jlink-target-picker.ps1') }
     @{ Src = 'windows-terminal\settings.json'; Dst = (Join-Path $wtDir 'settings.json') }
     @{ Src = 'translucenttb\settings.json';    Dst = (Join-Path $ttbDir 'settings.json') }
 )
@@ -82,18 +83,20 @@ foreach ($item in $map) {
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-menu.ps1') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-jlink.txt') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-monitor.py') -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\jlink-manager.py') -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') -Force -ErrorAction SilentlyContinue
 
-# Install Textual for J-Link Manager and pySerial's ready-made miniterm.
-$tuiRequirements = Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt'
+# Install pySerial's ready-made miniterm.
+$serialRequirements = Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-serial.txt'
 if (Get-Command py -ErrorAction SilentlyContinue) {
-    py -3 -c "import textual, serial" 2>$null
+    py -3 -c "import serial" 2>$null
     if ($LASTEXITCODE -ne 0) {
-        Write-Host 'Installing the terminal TUI dependencies...' -ForegroundColor Cyan
-        py -3 -m pip install -r $tuiRequirements
-        if ($LASTEXITCODE -ne 0) { throw 'Could not install the terminal TUI Python dependencies.' }
+        Write-Host 'Installing the serial monitor dependency...' -ForegroundColor Cyan
+        py -3 -m pip install -r $serialRequirements
+        if ($LASTEXITCODE -ne 0) { throw 'Could not install the serial monitor Python dependency.' }
     }
 } else {
-    Write-Host 'SKIP: Python launcher not found; install Python 3.9+ to use the J-Link Manager.' -ForegroundColor Yellow
+    Write-Host 'SKIP: Python launcher not found; install Python 3.9+ to use the Serial profile.' -ForegroundColor Yellow
 }
 
 # Install TranslucentTB (transparent taskbar) if missing, and register it to

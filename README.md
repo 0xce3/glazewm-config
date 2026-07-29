@@ -10,10 +10,11 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 | Path | What it is | Restores to |
 |------|------------|-------------|
 | `glazewm/config.yaml` | GlazeWM window manager config (workspaces, keybinds, gaps, rules) | `~/.glzr/glazewm/config.yaml` |
-| `glazewm/jlink-manager.py` | Interactive SEGGER J-Link Remote/GDB server TUI | `~/.glzr/glazewm/jlink-manager.py` |
 | `glazewm/taskbar.ps1` | Hide/show/toggle the Windows taskbar | `~/.glzr/glazewm/taskbar.ps1` |
 | `yasb/config.yaml` | YASB status bar layout | `~/.config/yasb/config.yaml` |
 | `yasb/styles.css` | YASB Gruvbox Soft Dark theme | `~/.config/yasb/styles.css` |
+| `yasb/jlink-control.py` | Headless J-Link server controller for YASB | `~/.config/yasb/jlink-control.py` |
+| `yasb/jlink-target-picker.ps1` | Searchable GDB target picker for YASB | `~/.config/yasb/jlink-target-picker.ps1` |
 | `windows-terminal/settings.json` | Windows Terminal profiles + Gruvbox schemes | `…/WindowsTerminal_*/LocalState/settings.json` |
 | `translucenttb/settings.json` | TranslucentTB config (fully transparent taskbar) | `…/TranslucentTB_*/RoamingState/settings.json` |
 | `flowlauncher/Themes/Gruvbox Soft Dark.xaml` | Flow Launcher Gruvbox theme (floating app launcher) | `%APPDATA%/FlowLauncher/Themes/` |
@@ -31,7 +32,7 @@ opaque application windows, and a floating YASB bar that matches the window gaps
 - [TranslucentTB](https://github.com/TranslucentTB/TranslucentTB) — `winget install CharlesMilette.TranslucentTB` (transparent taskbar; `install.ps1` handles it)
 - [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) — `winget install Flow-Launcher.Flow-Launcher` (floating launcher on the Windows key; `install.ps1` applies the Gruvbox theme)
 - [SEGGER J-Link Software](https://www.segger.com/downloads/jlink/) (optional, for the J-Link manager)
-- [Python 3.9+](https://www.python.org/downloads/), [Textual](https://textual.textualize.io/), and pySerial (for J-Link Manager and miniterm)
+- [Python 3.9+](https://www.python.org/downloads/) and pySerial (for miniterm)
 - WSL (Ubuntu) + [my neovim config](https://github.com/0xce3/nvim-config)
 - JetBrainsMono Nerd Font
 
@@ -63,23 +64,20 @@ built-in menu commands, or `Ctrl+Q` to quit.
 
 ## J-Link manager
 
-Start the portable manager directly from the repository:
+The right side of YASB contains a compact J-Link status and control group:
 
-```powershell
-py -m pip install -r .\glazewm\requirements-tui.txt
-py .\glazewm\jlink-manager.py
-```
+- The status shows `Off`, `Remote`, `GDB`, or `R+G`; click it to show the
+  detailed state and selected target.
+- `R` starts or stops the Remote Server.
+- `G` opens the searchable SEGGER target list and starts Remote plus GDB.
+- The red stop icon terminates all local J-Link Remote and GDB servers.
 
-The script detects J-Link installations below the standard SEGGER installation
-folders or on `PATH`. Press `J` to start only the Remote Server. Press `G` to
-open a searchable picker with the exact target names from the installed SEGGER
-device database and then start the GDB Server. The last confirmed GDB target is
-stored in the user's application-data directory and preselected next time.
-All settings can also be supplied without editing the script:
-
-```powershell
-py .\glazewm\jlink-manager.py --device NRF52840_XXAA --interface SWD --speed 4000
-```
+Status is refreshed every second. `Active` indicates that a real Remote client
+is connected; the check reads the Windows TCP table and does not connect to the
+server itself. Server processes survive YASB reloads,
+and the selected GDB target is remembered in the user's application-data
+directory. Executables are discovered from `PATH`, standard SEGGER installation
+folders, or `JLINK_BIN`; no machine-specific paths are stored in the repo.
 
 The equivalent environment variables are `JLINK_BIN`, `JLINK_DEVICE`,
 `JLINK_INTERFACE`, `JLINK_SPEED`, `JLINK_GDB_PORT`, `JLINK_REMOTE_PORT`, and
