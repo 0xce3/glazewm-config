@@ -414,8 +414,7 @@ def stop_all() -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    status = commands.add_parser("status")
-    status.add_argument("--view", choices=("all", "active", "inactive"), default="all")
+    commands.add_parser("status")
     commands.add_parser("targets")
     commands.add_parser("start-remote")
     commands.add_parser("toggle-remote")
@@ -431,11 +430,7 @@ def main() -> int:
         if args.command == "status":
             # ASCII-safe JSON also works when YASB inherits a legacy Windows
             # console code page instead of UTF-8.
-            payload = status_payload()
-            is_active = bool(payload["clients"])
-            if (args.view == "active" and not is_active) or (args.view == "inactive" and is_active):
-                payload = {}
-            print(json.dumps(payload))
+            print(json.dumps(status_payload()))
             return 0
         if args.command == "targets":
             print(json.dumps(discover_devices()))

@@ -164,8 +164,7 @@
 .wifi-widget .icon,
 .bluetooth-widget .icon,
 .notification-widget .icon,
-.jlink-status .icon,
-.jlink-status-active .icon {
+.jlink-status .icon {
     font-family: "JetBrainsMono NFP";
 }
 
@@ -176,8 +175,7 @@
 }
 
 /* J-Link server status and context-menu trigger */
-.jlink-status,
-.jlink-status-active {
+.jlink-status {
     background-color: transparent;
     padding-left: 0;
     padding-right: 0;
@@ -186,19 +184,16 @@
     border-radius: 4px;
 }
 
-.custom-widget.jlink-status .widget-container,
-.custom-widget.jlink-status-active .widget-container {
+.custom-widget.jlink-status .widget-container {
     padding-left: 7px;
     padding-right: 7px;
 }
 
-.custom-widget.jlink-status .widget-container:hover,
-.custom-widget.jlink-status-active .widget-container:hover {
+.custom-widget.jlink-status .widget-container:hover {
     background-color: var(--yasb-white-alpha-15);
 }
 
-.jlink-status .icon,
-.jlink-status-active .icon {
+.jlink-status .icon {
     color: var(--yasb-icon-fg);
     font-size: 16px;
     font-weight: 700;
@@ -206,13 +201,6 @@
     padding-left: 2px;
     padding-right: 2px;
     margin-right: 2px;
-}
-
-.jlink-status-active .label {
-    color: #b8bb26;
-    font-weight: 700;
-    text-shadow: 0 0 4px rgba(184, 187, 38, 0.9),
-                 0 0 8px rgba(184, 187, 38, 0.55);
 }
 
 .home-widget .jlink-menu-arrow {
