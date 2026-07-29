@@ -10,7 +10,6 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 | Path | What it is | Restores to |
 |------|------------|-------------|
 | `glazewm/config.yaml` | GlazeWM window manager config (workspaces, keybinds, gaps, rules) | `~/.glzr/glazewm/config.yaml` |
-| `glazewm/serial-monitor.py` | Gruvbox port/baud picker for pySerial miniterm | `~/.glzr/glazewm/serial-monitor.py` |
 | `glazewm/jlink-manager.py` | Interactive SEGGER J-Link Remote/GDB server TUI | `~/.glzr/glazewm/jlink-manager.py` |
 | `glazewm/taskbar.ps1` | Hide/show/toggle the Windows taskbar | `~/.glzr/glazewm/taskbar.ps1` |
 | `yasb/config.yaml` | YASB status bar layout | `~/.config/yasb/config.yaml` |
@@ -32,7 +31,7 @@ opaque application windows, and a floating YASB bar that matches the window gaps
 - [TranslucentTB](https://github.com/TranslucentTB/TranslucentTB) — `winget install CharlesMilette.TranslucentTB` (transparent taskbar; `install.ps1` handles it)
 - [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) — `winget install Flow-Launcher.Flow-Launcher` (floating launcher on the Windows key; `install.ps1` applies the Gruvbox theme)
 - [SEGGER J-Link Software](https://www.segger.com/downloads/jlink/) (optional, for the J-Link manager)
-- [Python 3.9+](https://www.python.org/downloads/), [Textual](https://textual.textualize.io/), and pySerial (for the Serial/J-Link TUIs)
+- [Python 3.9+](https://www.python.org/downloads/), [Textual](https://textual.textualize.io/), and pySerial (for J-Link Manager and miniterm)
 - WSL (Ubuntu) + [my neovim config](https://github.com/0xce3/nvim-config)
 - JetBrainsMono Nerd Font
 
@@ -52,15 +51,15 @@ Then start GlazeWM and YASB. Reload GlazeWM config with `Alt+Shift+R`.
 Open the Windows Terminal `Serial` profile or run:
 
 ```powershell
-py .\glazewm\serial-monitor.py
+powershell.exe -NoLogo -NoProfile -Command "$baud = Read-Host 'Baud rate [115200]'; if ([string]::IsNullOrWhiteSpace($baud)) { $baud = 115200 }; py -m serial.tools.miniterm - $baud --encoding utf-8 --filter direct --eol CRLF --dtr 1 --rts 1 --exit-char 17"
 ```
 
-Choose a COM port and baud rate in the Gruvbox popups. The launcher then hands
-the terminal to pySerial miniterm, so output, input and scrollback no longer
-depend on a continuously redrawn Textual layout. Miniterm uses 8N1,
-ISO-8859-1 and CRLF by default here. Press `Ctrl+Q` to quit miniterm or `Ctrl+T`
-to open its menu. The last confirmed port and baud rate are stored in the
-user's application-data directory and preselected next time.
+Enter a baud rate or press Enter to accept 115200. Miniterm's built-in prompt
+then lists the available COM ports. It uses 8N1, UTF-8 and CRLF. The `direct`
+filter passes firmware ANSI sequences through to Windows Terminal instead of
+displaying them as text.
+Press `Ctrl+T`, then `B` to change the baud rate, `Ctrl+T` for the other
+built-in menu commands, or `Ctrl+Q` to quit.
 
 ## J-Link manager
 

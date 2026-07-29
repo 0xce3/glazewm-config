@@ -47,7 +47,6 @@ if (-not $jetBrainsMonoInstalled) {
 
 $map = @(
     @{ Src = 'glazewm\config.yaml';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\config.yaml') }
-    @{ Src = 'glazewm\serial-monitor.py';       Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-monitor.py') }
     @{ Src = 'glazewm\jlink-manager.py';        Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\jlink-manager.py') }
     @{ Src = 'glazewm\requirements-tui.txt';   Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') }
     @{ Src = 'glazewm\taskbar.ps1';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
@@ -82,8 +81,9 @@ foreach ($item in $map) {
 # Remove files superseded by the Python terminal tools.
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-menu.ps1') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-jlink.txt') -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-monitor.py') -Force -ErrorAction SilentlyContinue
 
-# Install the Python dependencies used by the Serial and J-Link TUI profiles.
+# Install Textual for J-Link Manager and pySerial's ready-made miniterm.
 $tuiRequirements = Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt'
 if (Get-Command py -ErrorAction SilentlyContinue) {
     py -3 -c "import textual, serial" 2>$null

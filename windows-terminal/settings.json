@@ -101,7 +101,7 @@
                                   {
                                       "background":  "#32302F",
                                       "colorScheme":  "Gruvbox Soft Dark",
-                                      "commandline":  "py \"%USERPROFILE%\\.glzr\\glazewm\\serial-monitor.py\"",
+                                      "commandline":  "powershell.exe -NoLogo -NoProfile -Command \"$baud = Read-Host 'Baud rate [115200]'; if ([string]::IsNullOrWhiteSpace($baud)) { $baud = 115200 }; py -m serial.tools.miniterm - $baud --encoding utf-8 --filter direct --eol CRLF --dtr 1 --rts 1 --exit-char 17\"",
                                       "font":  {
                                                    "face":  "JetBrainsMono Nerd Font Mono"
                                                },
