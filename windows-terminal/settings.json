@@ -62,7 +62,10 @@
                    ],
     "profiles":  {
                      "defaults":  {
-                                      "colorScheme":  "Gruvbox Soft Dark"
+                                      "colorScheme":  "Gruvbox Soft Dark",
+                                      "font":  {
+                                                   "face":  "JetBrainsMono Nerd Font Mono"
+                                               }
                                   },
                      "list":  [
                                   {
@@ -98,7 +101,7 @@
                                   {
                                       "background":  "#32302F",
                                       "colorScheme":  "Gruvbox Soft Dark",
-                                      "commandline":  "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.glzr\\glazewm\\serial-menu.ps1\"",
+                                      "commandline":  "py \"%USERPROFILE%\\.glzr\\glazewm\\serial-monitor.py\"",
                                       "font":  {
                                                    "face":  "JetBrainsMono Nerd Font Mono"
                                                },
@@ -106,6 +109,22 @@
                                       "icon":  "❯",
                                       "name":  "Serial",
                                       "opacity":  85,
+                                      "padding":  "0",
+                                      "scrollbarState":  "hidden",
+                                      "startingDirectory":  "%USERPROFILE%",
+                                      "useAcrylic":  true
+                                  },
+                                  {
+                                      "background":  "#32302F",
+                                      "colorScheme":  "Gruvbox Soft Dark",
+                                      "commandline":  "py \"%USERPROFILE%\\.glzr\\glazewm\\jlink-manager.py\"",
+                                      "font":  {
+                                                   "face":  "JetBrainsMono Nerd Font Mono"
+                                               },
+                                      "guid":  "{83f4759f-b380-4b97-a574-2c9afac10ad4}",
+                                      "icon":  "⚡",
+                                      "name":  "J-Link Manager",
+                                      "opacity":  95,
                                       "padding":  "0",
                                       "scrollbarState":  "hidden",
                                       "startingDirectory":  "%USERPROFILE%",

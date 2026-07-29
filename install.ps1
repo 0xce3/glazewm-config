@@ -14,9 +14,42 @@ $wtDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3
 $ttbAumid = '28017CharlesMilette.TranslucentTB_v826wp6bftszj!TranslucentTB'
 $ttbDir = Join-Path $env:LOCALAPPDATA 'Packages\28017CharlesMilette.TranslucentTB_v826wp6bftszj\RoamingState'
 
+# Windows Terminal can only apply a font family after Windows has registered it.
+$fontRegistryPaths = @(
+    'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
+    'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
+)
+$jetBrainsMonoInstalled = $false
+foreach ($fontRegistryPath in $fontRegistryPaths) {
+    if (-not (Test-Path $fontRegistryPath)) { continue }
+    $registeredFonts = (Get-ItemProperty $fontRegistryPath).PSObject.Properties
+    if ($registeredFonts | Where-Object {
+        $_.Name -match '^JetBrainsMono (?:NFM|Nerd Font Mono)' -or
+        $_.Value -match '^JetBrainsMonoNerdFontMono-'
+    }) {
+        $jetBrainsMonoInstalled = $true
+        break
+    }
+}
+
+if (-not $jetBrainsMonoInstalled) {
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        Write-Host 'Installing JetBrainsMono Nerd Font...' -ForegroundColor Cyan
+        winget install --id DEVCOM.JetBrainsMonoNerdFont --exact --source winget `
+            --accept-package-agreements --accept-source-agreements --silent
+        if ($LASTEXITCODE -ne 0) { throw 'Could not install JetBrainsMono Nerd Font.' }
+    } else {
+        throw 'JetBrainsMono Nerd Font is missing and winget is not available.'
+    }
+} else {
+    Write-Host 'OK:     JetBrainsMono Nerd Font is installed.' -ForegroundColor Green
+}
+
 $map = @(
     @{ Src = 'glazewm\config.yaml';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\config.yaml') }
-    @{ Src = 'glazewm\serial-menu.ps1';        Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-menu.ps1') }
+    @{ Src = 'glazewm\serial-monitor.py';       Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-monitor.py') }
+    @{ Src = 'glazewm\jlink-manager.py';        Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\jlink-manager.py') }
+    @{ Src = 'glazewm\requirements-tui.txt';   Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') }
     @{ Src = 'glazewm\taskbar.ps1';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
     @{ Src = 'glazewm\glaze-layout.ps1';       Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Src = 'glazewm\glaze-swap.ps1';         Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
@@ -44,6 +77,23 @@ foreach ($item in $map) {
 
     Copy-Item $src $dst -Force
     Write-Host "OK:     $($item.Src) -> $dst" -ForegroundColor Green
+}
+
+# Remove files superseded by the Python terminal tools.
+Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-menu.ps1') -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-jlink.txt') -Force -ErrorAction SilentlyContinue
+
+# Install the Python dependencies used by the Serial and J-Link TUI profiles.
+$tuiRequirements = Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt'
+if (Get-Command py -ErrorAction SilentlyContinue) {
+    py -3 -c "import textual, serial" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host 'Installing the terminal TUI dependencies...' -ForegroundColor Cyan
+        py -3 -m pip install -r $tuiRequirements
+        if ($LASTEXITCODE -ne 0) { throw 'Could not install the terminal TUI Python dependencies.' }
+    }
+} else {
+    Write-Host 'SKIP: Python launcher not found; install Python 3.9+ to use the J-Link Manager.' -ForegroundColor Yellow
 }
 
 # Install TranslucentTB (transparent taskbar) if missing, and register it to

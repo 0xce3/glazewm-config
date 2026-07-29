@@ -46,7 +46,7 @@ gaps:
     left: '5px'
 
 window_effects:
-  # Focused window: bright "hacker green" border so the active pane is obvious.
+  # Focused window: Gruvbox orange border so the active pane is obvious.
   focused_window:
     border:
       enabled: true
@@ -57,12 +57,7 @@ window_effects:
     corner_style:
       enabled: true
       style: 'square'
-    transparency:
-      # Focused window: 90% opacity - subtle see-through, less distracting.
-      enabled: true
-      opacity: '90%'
-
-  # Unfocused windows: dim border + slight transparency for depth.
+  # Unfocused windows: dim border.
   other_windows:
     border:
       enabled: true
@@ -73,11 +68,6 @@ window_effects:
     corner_style:
       enabled: true
       style: 'square'
-    transparency:
-      # Unfocused windows: a touch more transparent than focused.
-      enabled: true
-      opacity: '85%'
-
 window_behavior:
   initial_state: 'tiling'
 

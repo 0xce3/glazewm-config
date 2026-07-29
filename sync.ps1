@@ -17,7 +17,8 @@ $repo = Split-Path -Parent $MyInvocation.MyCommand.Path
 $forbiddenPatterns = @(
     '(?i)\b(?:api[_-]?key|secret|token|password)\b\s*[:=]\s*[A-Za-z0-9_\-]{12,}',
     '(?i)\b(?:bearer\s+|ghp_|github_pat_|sk-)[A-Za-z0-9._\-]+',
-    '(?i)\b(?:codewrights|daniel\.carius)\b',
+    '(?i)[A-Z]:\\Users\\[^\\]+\\',
+    '(?i)\\\\[^\\]+\\[^\\]+',
     '(?i)[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}'
 )
 
@@ -28,7 +29,9 @@ $forbiddenPatterns = @(
 # Serial profile or color schemes, edit the repo template manually.
 $map = @(
     @{ Repo = 'glazewm\config.yaml';            Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\config.yaml') }
-    @{ Repo = 'glazewm\serial-menu.ps1';        Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-menu.ps1') }
+    @{ Repo = 'glazewm\serial-monitor.py';       Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-monitor.py') }
+    @{ Repo = 'glazewm\jlink-manager.py';        Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\jlink-manager.py') }
+    @{ Repo = 'glazewm\requirements-tui.txt';   Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') }
     @{ Repo = 'glazewm\taskbar.ps1';            Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
     @{ Repo = 'glazewm\glaze-layout.ps1';       Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Repo = 'glazewm\glaze-swap.ps1';         Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }

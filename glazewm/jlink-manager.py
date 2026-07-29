@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import json
 import os
 import queue
 import shutil
@@ -20,14 +22,15 @@ from typing import Iterable
 
 try:
     from textual.app import App, ComposeResult
-    from textual.containers import Horizontal, Vertical
+    from textual.binding import Binding
+    from textual.containers import Vertical
+    from textual.screen import ModalScreen
+    from textual.theme import Theme
     from textual.widgets import (
-        Button,
         DataTable,
         Footer,
         Header,
         Input,
-        Label,
         RichLog,
         Static,
         TabbedContent,
@@ -36,8 +39,43 @@ try:
 except ImportError as error:
     raise SystemExit(
         "Missing dependency 'textual'. Install it with:\n"
-        "  py -m pip install -r glazewm/requirements-jlink.txt"
+        "  py -m pip install -r glazewm/requirements-tui.txt"
     ) from error
+
+
+GRUVBOX_SOFT_DARK = Theme(
+    name="gruvbox-soft-dark",
+    primary="#fabd2f",
+    secondary="#fe8019",
+    accent="#fabd2f",
+    foreground="#ebdbb2",
+    background="#282828",
+    surface="#32302f",
+    panel="#3c3836",
+    success="#b8bb26",
+    warning="#fabd2f",
+    error="#fb4934",
+    dark=True,
+    variables={
+        "border": "#fabd2f",
+        "border-blurred": "#665c54",
+        "block-cursor-background": "#504945",
+        "block-cursor-foreground": "#fabd2f",
+        "footer-background": "#1d2021",
+        "footer-foreground": "#a89984",
+        "footer-key-background": "transparent",
+        "footer-key-foreground": "#fabd2f",
+        "footer-description-background": "transparent",
+        "footer-description-foreground": "#d5c4a1",
+        "input-cursor-background": "#fabd2f",
+        "input-cursor-foreground": "#282828",
+        "input-selection-background": "#504945",
+        "scrollbar": "#665c54",
+        "scrollbar-hover": "#928374",
+        "scrollbar-active": "#fabd2f",
+        "scrollbar-background": "#1d2021",
+    },
+)
 
 
 @dataclass(frozen=True)
@@ -83,6 +121,31 @@ def parse_args() -> Config:
         remote_port=args.remote_port,
         log_directory=Path(args.log_directory).expanduser(),
     )
+
+
+def state_file() -> Path:
+    app_data = os.environ.get("APPDATA")
+    base = Path(app_data) if app_data else Path.home() / ".config"
+    return base / "glazewm-config" / "jlink-manager.json"
+
+
+def load_last_device() -> str:
+    try:
+        data = json.loads(state_file().read_text(encoding="utf-8"))
+        return str(data.get("device", "")).strip()
+    except (OSError, ValueError, TypeError):
+        return ""
+
+
+def save_last_device(device: str) -> None:
+    path = state_file()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(
+        json.dumps({"device": device}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    temporary.replace(path)
 
 
 def jlink_directories(config: Config) -> list[Path]:
@@ -137,6 +200,18 @@ def xml_device_names(paths: Iterable[Path]) -> set[str]:
     return names
 
 
+def exported_device_name(line: str) -> str:
+    line = line.strip()
+    if not line:
+        return ""
+    try:
+        fields = next(csv.reader([line], skipinitialspace=True))
+    except csv.Error:
+        fields = [line]
+    # ExpDevList uses CSV records: vendor, device name, core, ...
+    return (fields[1] if len(fields) > 1 else fields[0]).strip()
+
+
 def discover_devices(config: Config) -> list[str]:
     names: set[str] = set()
     try:
@@ -157,13 +232,12 @@ def discover_devices(config: Config) -> list[str]:
                 timeout=30,
             )
             if export_file.exists():
-                names.update(
-                    line.strip()
-                    for line in export_file.read_text(
-                        encoding="utf-8", errors="replace"
-                    ).splitlines()
-                    if line.strip()
-                )
+                for line in export_file.read_text(
+                    encoding="utf-8", errors="replace"
+                ).splitlines():
+                    name = exported_device_name(line)
+                    if name:
+                        names.add(name)
     except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
         pass
 
@@ -285,113 +359,108 @@ class ManagedProcess:
             self.process.wait(timeout=3)
 
 
-class JLinkManager(App[None]):
-    TITLE = "SEGGER J-Link Manager"
-    SUB_TITLE = "Remote and GDB server control"
+class TargetPicker(ModalScreen[str | None]):
     CSS = """
-    Screen {
-        background: #282828;
+    TargetPicker {
+        align: center middle;
+        background: #000000 70%;
+    }
+    #picker {
+        width: 80%;
+        height: 80%;
+        padding: 1 2;
+        background: #32302f;
         color: #ebdbb2;
+        border: round #fabd2f;
     }
-    #status {
-        height: 3;
-        padding: 0 1;
-        background: #3c3836;
-        border-bottom: solid #fabd2f;
+    #picker-title {
+        height: 2;
+        color: #fabd2f;
+        text-style: bold;
     }
-    #controls {
-        height: 3;
-        padding: 0 1;
-    }
-    Button {
-        margin-right: 1;
-    }
-    #target-panel {
-        height: 14;
-        padding: 0 1;
-        border: round #665c54;
+    #picker-help {
+        height: 2;
+        color: #a89984;
     }
     #target-search {
         margin-bottom: 1;
+        background: #1d2021;
+        color: #ebdbb2;
+        border: tall #665c54;
+    }
+    #target-search:focus {
+        border: tall #fabd2f;
+    }
+    #target-search > .input--placeholder {
+        color: #928374;
+    }
+    #target-search > .input--cursor {
+        background: #fabd2f;
+        color: #282828;
+    }
+    #target-search > .input--selection {
+        background: #504945;
+        color: #fbf1c7;
     }
     #target-table {
         height: 1fr;
-    }
-    TabbedContent {
-        height: 1fr;
-    }
-    RichLog {
         background: #1d2021;
         color: #d5c4a1;
-        padding: 0 1;
-        scrollbar-color: #fabd2f;
+        border: none;
+        scrollbar-background: #1d2021;
+        scrollbar-color: #665c54;
+        scrollbar-color-hover: #928374;
+        scrollbar-color-active: #fabd2f;
     }
-    .selected-target {
+    #target-table > .datatable--header {
+        background: #3c3836;
         color: #fabd2f;
+        text-style: bold;
+    }
+    #target-table > .datatable--even-row {
+        background: #1d2021;
+        color: #d5c4a1;
+    }
+    #target-table > .datatable--odd-row {
+        background: #282828;
+        color: #d5c4a1;
+    }
+    #target-table > .datatable--cursor {
+        background: #504945;
+        color: #fabd2f;
+        text-style: bold;
+    }
+    #target-table > .datatable--hover {
+        background: #3c3836;
+        color: #ebdbb2;
     }
     """
-    BINDINGS = [
-        ("j", "start_remote", "Start Remote"),
-        ("g", "start_gdb", "Start GDB"),
-        ("x", "stop_all", "Stop all"),
-        ("ctrl+q", "quit", "Quit"),
-    ]
+    BINDINGS = [Binding("escape", "cancel", "Cancel", priority=True)]
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self, devices: list[str], selected: str = "") -> None:
         super().__init__()
-        self.config = config
-        self.devices: list[str] = []
-        self.filtered_devices: list[str] = []
-        self.selected_device = config.device
-        self.remote_queue: queue.Queue[str] = queue.Queue()
-        self.gdb_queue: queue.Queue[str] = queue.Queue()
-        self.remote = ManagedProcess("Remote", self.remote_queue)
-        self.gdb = ManagedProcess("GDB", self.gdb_queue)
+        self.devices = devices
+        self.filtered_devices = devices
+        self.selected = selected
 
     def compose(self) -> ComposeResult:
-        yield Header()
-        yield Static(id="status")
-        with Horizontal(id="controls"):
-            yield Button("Start Remote", id="start-remote", variant="primary")
-            yield Button("Start GDB", id="start-gdb", variant="success")
-            yield Button("Stop All", id="stop-all", variant="error")
-            yield Label("", id="selected-target", classes="selected-target")
-        with Vertical(id="target-panel"):
-            yield Input(placeholder="Filter targets by any part of the name...", id="target-search")
+        with Vertical(id="picker"):
+            yield Static("Select GDB target", id="picker-title")
+            yield Static(
+                "Type to filter, use Up/Down, press Enter to confirm, Esc to cancel.",
+                id="picker-help",
+            )
+            yield Input(
+                placeholder="Filter supported J-Link targets...",
+                id="target-search",
+            )
             yield DataTable(id="target-table", cursor_type="row", zebra_stripes=True)
-        with TabbedContent(initial="remote-tab"):
-            with TabPane("Remote log", id="remote-tab"):
-                yield RichLog(id="remote-log", wrap=True, highlight=True, auto_scroll=True)
-            with TabPane("GDB log", id="gdb-tab"):
-                yield RichLog(id="gdb-log", wrap=True, highlight=True, auto_scroll=True)
-        yield Footer()
 
     def on_mount(self) -> None:
         table = self.query_one("#target-table", DataTable)
         table.add_column("Supported J-Link target")
-        self.set_interval(0.1, self.refresh_runtime)
-        self.run_worker(self.load_devices, thread=True, name="device-discovery")
-        self.update_status()
-        if self.selected_device:
-            self.query_one("#selected-target", Label).update(
-                f"Target: {self.selected_device}"
-            )
-
-    def load_devices(self) -> None:
-        devices = discover_devices(self.config)
-        self.call_from_thread(self.set_devices, devices)
-
-    def set_devices(self, devices: list[str]) -> None:
-        self.devices = devices
-        self.apply_filter(self.query_one("#target-search", Input).value)
-        target_log = self.query_one("#gdb-log", RichLog)
-        if devices:
-            target_log.write(f"Loaded {len(devices)} supported targets.")
-        else:
-            target_log.write(
-                "[yellow]No target database found. Check the J-Link installation "
-                "or set JLINK_BIN.[/yellow]"
-            )
+        self.apply_filter("")
+        self.query_one("#target-search", Input).focus()
 
     def apply_filter(self, query: str) -> None:
         needle = query.casefold()
@@ -402,43 +471,125 @@ class JLinkManager(App[None]):
         table.clear(columns=False)
         for device in self.filtered_devices:
             table.add_row(device, key=device)
+        if self.selected in self.filtered_devices:
+            table.move_cursor(row=self.filtered_devices.index(self.selected))
 
-    def on_input_changed(self, event: Input.Changed) -> None:
-        if event.input.id == "target-search":
-            self.apply_filter(event.value)
-
-    def select_current_target(self) -> None:
+    def choose_current(self) -> None:
         table = self.query_one("#target-table", DataTable)
         if not self.filtered_devices or table.cursor_row < 0:
             return
         index = min(table.cursor_row, len(self.filtered_devices) - 1)
-        self.selected_device = self.filtered_devices[index]
-        self.query_one("#selected-target", Label).update(
-            f"Target: {self.selected_device}"
-        )
-        self.query_one("#gdb-log", RichLog).write(
-            f"Selected target: [bold yellow]{self.selected_device}[/bold yellow]"
-        )
+        self.dismiss(self.filtered_devices[index])
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        self.apply_filter(event.value)
+
+    def on_input_submitted(self, _event: Input.Submitted) -> None:
+        self.choose_current()
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
-        self.selected_device = str(event.row_key.value)
-        self.query_one("#selected-target", Label).update(
-            f"Target: {self.selected_device}"
-        )
+        self.dismiss(str(event.row_key.value))
 
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        if event.input.id == "target-search":
-            self.select_current_target()
+    def action_cancel(self) -> None:
+        self.dismiss(None)
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        actions = {
-            "start-remote": self.action_start_remote,
-            "start-gdb": self.action_start_gdb,
-            "stop-all": self.action_stop_all,
-        }
-        action = actions.get(event.button.id or "")
-        if action:
-            action()
+
+class JLinkManager(App[None]):
+    TITLE = "SEGGER J-Link Manager"
+    SUB_TITLE = "Remote and GDB server control"
+    CSS = """
+    Screen {
+        background: #282828;
+        color: #ebdbb2;
+        scrollbar-background: #1d2021;
+        scrollbar-color: #665c54;
+        scrollbar-color-hover: #928374;
+        scrollbar-color-active: #fabd2f;
+    }
+    Header {
+        background: #3c3836;
+        color: #fabd2f;
+    }
+    Footer {
+        background: #1d2021;
+        color: #a89984;
+    }
+    #status {
+        height: 3;
+        padding: 0 1;
+        background: #3c3836;
+        color: #ebdbb2;
+        border-bottom: solid #fabd2f;
+    }
+    TabbedContent {
+        height: 1fr;
+        background: #282828;
+    }
+    Tabs {
+        background: #282828;
+        color: #a89984;
+        border-bottom: solid #504945;
+    }
+    Tab {
+        background: #282828;
+        color: #a89984;
+    }
+    Tab:hover {
+        background: #3c3836;
+        color: #ebdbb2;
+    }
+    Tab.-active {
+        background: #3c3836;
+        color: #fabd2f;
+        text-style: bold;
+    }
+    TabPane {
+        background: #282828;
+    }
+    RichLog {
+        background: #1d2021;
+        color: #d5c4a1;
+        padding: 0 1;
+        border: round #504945;
+        scrollbar-background: #1d2021;
+        scrollbar-color: #665c54;
+        scrollbar-color-hover: #928374;
+        scrollbar-color-active: #fabd2f;
+    }
+    """
+    BINDINGS = [
+        Binding("j", "start_remote", "Start Remote"),
+        Binding("g", "start_gdb", "Start GDB"),
+        Binding("x", "stop_all", "Stop all"),
+        Binding("ctrl+q", "quit", "Quit", priority=True),
+    ]
+
+    def __init__(self, config: Config) -> None:
+        super().__init__()
+        self.config = config
+        self.device_is_explicit = bool(config.device)
+        self.selected_device = config.device or load_last_device()
+        self.picker_loading = False
+        self.remote_queue: queue.Queue[str] = queue.Queue()
+        self.gdb_queue: queue.Queue[str] = queue.Queue()
+        self.remote = ManagedProcess("Remote", self.remote_queue)
+        self.gdb = ManagedProcess("GDB", self.gdb_queue)
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Static(id="status")
+        with TabbedContent(initial="remote-tab"):
+            with TabPane("Remote log", id="remote-tab"):
+                yield RichLog(id="remote-log", wrap=True, highlight=True, auto_scroll=True)
+            with TabPane("GDB log", id="gdb-tab"):
+                yield RichLog(id="gdb-log", wrap=True, highlight=True, auto_scroll=True)
+        yield Footer(show_command_palette=False)
+
+    def on_mount(self) -> None:
+        self.register_theme(GRUVBOX_SOFT_DARK)
+        self.theme = GRUVBOX_SOFT_DARK.name
+        self.set_interval(0.1, self.refresh_runtime)
+        self.update_status()
 
     def action_start_remote(self) -> None:
         try:
@@ -453,9 +604,56 @@ class JLinkManager(App[None]):
             self.remote.write(f"ERROR: {error}")
 
     def action_start_gdb(self) -> None:
+        if self.gdb.running:
+            self.gdb.write("Already running.")
+            return
+        if self.device_is_explicit:
+            self.start_gdb_for_selected_target()
+            return
+        if self.picker_loading:
+            self.gdb.write("Target list is already loading.")
+            return
+        self.picker_loading = True
+        self.gdb.write("Loading supported J-Link targets...")
+        self.run_worker(
+            self.load_target_picker,
+            thread=True,
+            name="target-discovery",
+            exclusive=True,
+        )
+
+    def load_target_picker(self) -> None:
+        devices = discover_devices(self.config)
+        self.call_from_thread(self.show_target_picker, devices)
+
+    def show_target_picker(self, devices: list[str]) -> None:
+        self.picker_loading = False
+        if not devices:
+            self.gdb.write(
+                "ERROR: No target database found. Check the J-Link installation "
+                "or set JLINK_BIN."
+            )
+            return
+        self.push_screen(
+            TargetPicker(devices, self.selected_device),
+            self.target_selected,
+        )
+
+    def target_selected(self, device: str | None) -> None:
+        if not device:
+            self.gdb.write("Target selection cancelled.")
+            return
+        self.selected_device = device
+        try:
+            save_last_device(device)
+        except OSError as error:
+            self.gdb.write(f"WARNING: Could not save the target selection: {error}")
+        self.gdb.write(f"Selected target: {device}")
+        self.start_gdb_for_selected_target()
+
+    def start_gdb_for_selected_target(self) -> None:
         if not self.selected_device:
-            self.gdb.write("ERROR: Select a target from the filtered list first.")
-            self.query_one("#target-search", Input).focus()
+            self.gdb.write("ERROR: No GDB target selected.")
             return
         self.action_start_remote()
         try:
