@@ -53,6 +53,10 @@ $map = @(
     @{ Src = 'glazewm\glaze-swap.ps1';         Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
     @{ Src = 'yasb\config.yaml';               Dst = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Src = 'yasb\styles.css';                Dst = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
+    @{ Src = 'yasb\github-actions.py';          Dst = (Join-Path $env:USERPROFILE '.config\yasb\github-actions.py') }
+    @{ Src = 'yasb\github-actions-notify.ps1';  Dst = (Join-Path $env:USERPROFILE '.config\yasb\github-actions-notify.ps1') }
+    @{ Src = 'yasb\github-actions-picker.ps1';  Dst = (Join-Path $env:USERPROFILE '.config\yasb\github-actions-picker.ps1') }
+    @{ Src = 'yasb\gruvbox-picker.ps1';         Dst = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
     @{ Src = 'yasb\jlink-control.py';           Dst = (Join-Path $env:USERPROFILE '.config\yasb\jlink-control.py') }
     @{ Src = 'yasb\jlink-target-picker.ps1';    Dst = (Join-Path $env:USERPROFILE '.config\yasb\jlink-target-picker.ps1') }
     @{ Src = 'windows-terminal\settings.json'; Dst = (Join-Path $wtDir 'settings.json') }

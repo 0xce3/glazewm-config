@@ -45,6 +45,8 @@ bars:
       right:
       - jlink_menu
       - jlink_status
+      - github_actions_menu
+      - github_actions
       - systray
       - wifi
       - bluetooth
@@ -55,8 +57,8 @@ widgets:
     type: yasb.custom.CustomWidget
     options:
       class_name: jlink-status
-      label: '<span class="icon">J</span>{data[label]}'
-      label_alt: '{data[status]} · {data[device]}'
+      label: '{data[label]}'
+      label_alt: '{data[status]} - {data[device]}'
       label_placeholder: J-Link
       tooltip: true
       tooltip_label: '{data[status]} | Target: {data[device]} | Remote: {data[remote_port]} | GDB: {data[gdb_port]}'
@@ -73,28 +75,28 @@ widgets:
   jlink_menu:
     type: yasb.home.HomeWidget
     options:
-      label: '<span class="jlink-menu-arrow"></span>'
+      label: '<span class="jlink-menu-icon">J</span>'
       menu_list:
-      - title: Remote starten
+      - title: Start Remote
         command: powershell.exe
         args:
         - -NoProfile
         - -Command
         - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') start-remote'
-      - title: Remote stoppen
+      - title: Stop Remote
         command: powershell.exe
         args:
         - -NoProfile
         - -Command
         - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') stop-remote'
-      - title: Remote neu starten
+      - title: Restart Remote
         command: powershell.exe
         args:
         - -NoProfile
         - -Command
         - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') restart-remote'
       - separator: true
-      - title: GDB starten
+      - title: Start GDB
         command: powershell.exe
         args:
         - -NoProfile
@@ -102,25 +104,84 @@ widgets:
         - Bypass
         - -Command
         - '& (Join-Path $env:USERPROFILE ''.config\yasb\jlink-target-picker.ps1'')'
-      - title: GDB stoppen
+      - title: Stop GDB
         command: powershell.exe
         args:
         - -NoProfile
         - -Command
         - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') stop-gdb'
-      - title: GDB neu starten
+      - title: Restart GDB
         command: powershell.exe
         args:
         - -NoProfile
         - -Command
         - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') restart-gdb'
       - separator: true
-      - title: Alle J-Link Server stoppen
+      - title: Stop all J-Link servers
         command: powershell.exe
         args:
         - -NoProfile
         - -Command
         - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') stop'
+      system_menu: false
+      power_menu: false
+      blur: true
+      round_corners: true
+      round_corners_type: small
+      border_color: System
+      alignment: left
+      direction: down
+      offset_top: 6
+      offset_left: 0
+      callbacks:
+        on_left: toggle_menu
+        on_middle: do_nothing
+        on_right: do_nothing
+  github_actions:
+    type: yasb.custom.CustomWidget
+    options:
+      class_name: github-actions
+      label: '{data}'
+      label_alt: '{data}'
+      label_placeholder: ''
+      tooltip: false
+      exec_options:
+        run_cmd: py -3 %USERPROFILE%\.config\yasb\github-actions.py field display
+        run_interval: 1000
+        return_format: string
+        use_shell: true
+        encoding: utf-8
+      callbacks:
+        on_left: do_nothing
+        on_middle: do_nothing
+        on_right: do_nothing
+  github_actions_menu:
+    type: yasb.home.HomeWidget
+    options:
+      label: "<span class=\"github-actions-menu-icon\">\uEA84</span>"
+      menu_list:
+      - title: Select action run
+        command: powershell.exe
+        args:
+        - -NoProfile
+        - -ExecutionPolicy
+        - Bypass
+        - -Command
+        - '& (Join-Path $env:USERPROFILE ''.config\yasb\github-actions-picker.ps1'')'
+      - title: Change repository / workflow
+        command: powershell.exe
+        args:
+        - -NoProfile
+        - -ExecutionPolicy
+        - Bypass
+        - -Command
+        - '& (Join-Path $env:USERPROFILE ''.config\yasb\github-actions-picker.ps1'') -Configure'
+      - title: Clear selection
+        command: powershell.exe
+        args:
+        - -NoProfile
+        - -Command
+        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\github-actions.py'') clear-repositories'
       system_menu: false
       power_menu: false
       blur: true

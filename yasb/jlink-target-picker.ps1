@@ -1,5 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot 'gruvbox-picker.ps1')
+
 $controller = Join-Path $PSScriptRoot 'jlink-control.py'
 $pythonLauncher = Join-Path $env:SystemRoot 'py.exe'
 $targetsJson = & $pythonLauncher -3 $controller targets
@@ -26,13 +28,14 @@ if (-not $targets) {
     exit 1
 }
 
-$selected = $targets |
-    ForEach-Object { [PSCustomObject]@{ Target = [string]$_ } } |
-    Out-GridView -Title 'J-Link GDB target - type to filter, then select one' -PassThru
+$selection = @(Show-GruvboxPicker `
+    -Items @($targets) `
+    -Title 'J-Link GDB - Target' `
+    -Prompt 'Search J-Link targets')
 
-if ($null -eq $selected) { exit 0 }
+if ($selection.Count -eq 0) { exit 0 }
 
-& $pythonLauncher -3 $controller start-gdb --device $selected.Target
+& $pythonLauncher -3 $controller start-gdb --device $selection[0]
 if ($LASTEXITCODE -ne 0) {
     Add-Type -AssemblyName PresentationFramework
     [System.Windows.MessageBox]::Show(

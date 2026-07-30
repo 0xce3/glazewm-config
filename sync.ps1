@@ -35,6 +35,10 @@ $map = @(
     @{ Repo = 'glazewm\glaze-swap.ps1';         Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
     @{ Repo = 'yasb\config.yaml';               Live = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Repo = 'yasb\styles.css';                Live = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
+    @{ Repo = 'yasb\github-actions.py';          Live = (Join-Path $env:USERPROFILE '.config\yasb\github-actions.py') }
+    @{ Repo = 'yasb\github-actions-notify.ps1';  Live = (Join-Path $env:USERPROFILE '.config\yasb\github-actions-notify.ps1') }
+    @{ Repo = 'yasb\github-actions-picker.ps1';  Live = (Join-Path $env:USERPROFILE '.config\yasb\github-actions-picker.ps1') }
+    @{ Repo = 'yasb\gruvbox-picker.ps1';         Live = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
     @{ Repo = 'yasb\jlink-control.py';           Live = (Join-Path $env:USERPROFILE '.config\yasb\jlink-control.py') }
     @{ Repo = 'yasb\jlink-target-picker.ps1';    Live = (Join-Path $env:USERPROFILE '.config\yasb\jlink-target-picker.ps1') }
     @{ Repo = 'translucenttb\settings.json';    Live = (Join-Path $env:LOCALAPPDATA 'Packages\28017CharlesMilette.TranslucentTB_v826wp6bftszj\RoamingState\settings.json') }

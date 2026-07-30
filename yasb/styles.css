@@ -163,8 +163,7 @@
 /* These widgets use Nerd Font codepoints, not Segoe Fluent Icons. */
 .wifi-widget .icon,
 .bluetooth-widget .icon,
-.notification-widget .icon,
-.jlink-status .icon {
+.notification-widget .icon {
     font-family: "JetBrainsMono NFP";
 }
 
@@ -193,21 +192,23 @@
     background-color: var(--yasb-white-alpha-15);
 }
 
-.jlink-status .icon {
+.home-widget .jlink-menu-icon {
     color: var(--yasb-icon-fg);
+    font-family: "JetBrainsMono NFP";
     font-size: 16px;
     font-weight: 700;
     min-width: 18px;
     padding-left: 2px;
     padding-right: 2px;
-    margin-right: 2px;
 }
 
-.home-widget .jlink-menu-arrow {
+.home-widget .github-actions-menu-icon {
     color: var(--yasb-icon-fg);
     font-family: "JetBrainsMono NFP";
-    font-size: 11px;
-    min-width: 12px;
+    font-size: 16px;
+    min-width: 18px;
+    padding-left: 2px;
+    padding-right: 2px;
 }
 
 /* Home Menu */
@@ -230,6 +231,27 @@
 .home-menu .separator {
     max-height: 1px;
     background-color: rgba(128, 130, 158, 0.3);
+}
+
+/* Read-only GitHub Actions status via the separately authenticated gh CLI. */
+.custom-widget.github-actions .widget-container {
+    padding: 0;
+    margin: 0;
+}
+
+.custom-widget.github-actions .widget-container .label {
+    font-family: "Segoe UI Emoji", var(--system-font);
+    font-size: 11px;
+    padding: 0;
+}
+
+.github-actions {
+    padding: 0;
+    margin: 0;
+}
+
+.github-actions:hover {
+    background-color: var(--yasb-white-alpha-08);
 }
 
 /* Clock */

@@ -13,6 +13,10 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 | `glazewm/taskbar.ps1` | Hide/show/toggle the Windows taskbar | `~/.glzr/glazewm/taskbar.ps1` |
 | `yasb/config.yaml` | YASB status bar layout | `~/.config/yasb/config.yaml` |
 | `yasb/styles.css` | YASB Gruvbox Soft Dark theme | `~/.config/yasb/styles.css` |
+| `yasb/github-actions.py` | Read-only GitHub Actions status via `gh` | `~/.config/yasb/github-actions.py` |
+| `yasb/github-actions-notify.ps1` | Local completion notifications for the selected Actions run | `~/.config/yasb/github-actions-notify.ps1` |
+| `yasb/github-actions-picker.ps1` | Searchable local repository picker | `~/.config/yasb/github-actions-picker.ps1` |
+| `yasb/gruvbox-picker.ps1` | Shared Gruvbox searchable selection dialog | `~/.config/yasb/gruvbox-picker.ps1` |
 | `yasb/jlink-control.py` | Headless J-Link server controller for YASB | `~/.config/yasb/jlink-control.py` |
 | `yasb/jlink-target-picker.ps1` | Searchable GDB target picker for YASB | `~/.config/yasb/jlink-target-picker.ps1` |
 | `windows-terminal/settings.json` | Windows Terminal profiles + Gruvbox schemes | `…/WindowsTerminal_*/LocalState/settings.json` |
@@ -33,6 +37,7 @@ opaque application windows, and a floating YASB bar that matches the window gaps
 - [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) — `winget install Flow-Launcher.Flow-Launcher` (floating launcher on the Windows key; `install.ps1` applies the Gruvbox theme)
 - [SEGGER J-Link Software](https://www.segger.com/downloads/jlink/) (optional, for the J-Link manager)
 - [Python 3.9+](https://www.python.org/downloads/) and pySerial (for miniterm)
+- [GitHub CLI](https://cli.github.com/) (optional, for the Actions status widget)
 - WSL (Ubuntu) + [my neovim config](https://github.com/0xce3/nvim-config)
 - JetBrainsMono Nerd Font
 
@@ -67,7 +72,7 @@ built-in menu commands, or `Ctrl+Q` to quit.
 The right side of YASB contains a compact J-Link status and control group:
 
 - The status shows `Off`, `Remote`, `GDB`, or `R+G`.
-- Click the arrow before the status to open a native YASB popup with separate
+- Click the `J` before the status to open a native YASB popup with separate
   start, stop, and restart actions for the Remote and GDB servers. Starting GDB
   opens the searchable target picker. A final action stops all local J-Link
   servers.
@@ -82,6 +87,23 @@ folders, or `JLINK_BIN`; no machine-specific paths are stored in the repo.
 The equivalent environment variables are `JLINK_BIN`, `JLINK_DEVICE`,
 `JLINK_INTERFACE`, `JLINK_SPEED`, `JLINK_GDB_PORT`, `JLINK_REMOTE_PORT`, and
 `JLINK_LOG_DIR`.
+
+## GitHub Actions status
+
+The YASB Actions widget is read-only and delegates all GitHub access to the
+official `gh` CLI. It never accepts, reads, prints, or stores a token. Authenticate
+separately with `gh auth login`, then set `YASB_GITHUB_REPOS` to a comma-separated
+list such as `owner/repository,other-owner/other-repository`. Repository names
+remain local and are not stored in this public configuration.
+
+Alternatively, click the GitHub icon before the Actions status and choose
+`Select action run`. The first use asks for a repository and workflow before
+showing only active runs. That repository and workflow are remembered; use
+`Change repository / workflow` to replace them later. The selection is stored
+only in the user's application-data directory and takes precedence over
+`YASB_GITHUB_REPOS`. The bar shows a compact colored status and run ID such as
+`#7665`. The selected run stays pinned after completion, and a local Windows
+notification reports whether it succeeded, failed, or was cancelled.
 
 ## Keep the repo up to date
 
