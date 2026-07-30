@@ -141,14 +141,15 @@ widgets:
     type: yasb.custom.CustomWidget
     options:
       class_name: github-actions
-      label: '{data}'
-      label_alt: '{data}'
+      label: '{data[display]}'
+      label_alt: '{data[display]}'
       label_placeholder: ''
       tooltip: false
       exec_options:
-        run_cmd: py -3 %USERPROFILE%\.config\yasb\github-actions.py field display
+        run_cmd: py -3 %USERPROFILE%\.config\yasb\github-actions.py status
         run_interval: 1000
-        return_format: string
+        return_format: json
+        hide_empty: true
         use_shell: true
         encoding: utf-8
       callbacks:

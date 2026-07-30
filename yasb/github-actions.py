@@ -9,8 +9,13 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
+
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 
 REPOSITORY_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
@@ -248,7 +253,9 @@ def render_payload(value: dict[str, str]) -> dict[str, str]:
         "failure": "🔴",
         "unknown": "⚪",
     }.get(state, "⚪")
-    return {**value, "indicator": indicator}
+    label = value.get("label", "")
+    display = f"{indicator} {label}".strip() if label else ""
+    return {**value, "indicator": indicator, "display": display}
 
 
 def status_field(field: str) -> str:
