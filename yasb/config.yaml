@@ -76,21 +76,26 @@ widgets:
       label: '<span class="jlink-menu-arrow"></span>'
       menu_list:
       - title: Remote umschalten
-        command: cmd.exe
+        command: powershell.exe
         args:
-        - /c
-        - 'py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" toggle-remote'
+        - -NoProfile
+        - -Command
+        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') toggle-remote'
       - title: GDB starten ...
-        command: cmd.exe
+        command: powershell.exe
         args:
-        - /c
-        - 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.config\yasb\jlink-target-picker.ps1"'
+        - -NoProfile
+        - -ExecutionPolicy
+        - Bypass
+        - -Command
+        - '& (Join-Path $env:USERPROFILE ''.config\yasb\jlink-target-picker.ps1'')'
       - separator: true
       - title: Alle J-Link Server stoppen
-        command: cmd.exe
+        command: powershell.exe
         args:
-        - /c
-        - 'py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" stop'
+        - -NoProfile
+        - -Command
+        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') stop'
       system_menu: false
       power_menu: false
       blur: true

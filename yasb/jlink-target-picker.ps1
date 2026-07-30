@@ -1,7 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
 $controller = Join-Path $PSScriptRoot 'jlink-control.py'
-$targetsJson = & py -3 $controller targets
+$pythonLauncher = Join-Path $env:SystemRoot 'py.exe'
+$targetsJson = & $pythonLauncher -3 $controller targets
 if ($LASTEXITCODE -ne 0) {
     Add-Type -AssemblyName PresentationFramework
     [System.Windows.MessageBox]::Show(
@@ -31,7 +32,7 @@ $selected = $targets |
 
 if ($null -eq $selected) { exit 0 }
 
-& py -3 $controller start-gdb --device $selected.Target
+& $pythonLauncher -3 $controller start-gdb --device $selected.Target
 if ($LASTEXITCODE -ne 0) {
     Add-Type -AssemblyName PresentationFramework
     [System.Windows.MessageBox]::Show(
