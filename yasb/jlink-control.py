@@ -377,20 +377,37 @@ def stop_managed(name: str) -> None:
     save_json(process_state_file(), state)
 
 
-def toggle_remote() -> int:
-    if port_is_open(DEFAULT_REMOTE_PORT):
-        stop_server_images(
-            "JLinkGDBServerCL.exe",
-            "JLinkGDBServer.exe",
-            "JLinkRemoteServerCL.exe",
-            "JLinkRemoteServer.exe",
-        )
-        state = managed_state()
-        state.pop("gdb_pid", None)
-        state.pop("remote_pid", None)
-        save_json(process_state_file(), state)
-        return 0
-    return start_remote()
+def stop_gdb() -> int:
+    stop_managed("gdb")
+    stop_server_images("JLinkGDBServerCL.exe", "JLinkGDBServer.exe")
+    return 0
+
+
+def stop_remote() -> int:
+    # A GDB server connected through the Remote Server cannot remain usable.
+    stop_gdb()
+    stop_managed("remote")
+    stop_server_images("JLinkRemoteServerCL.exe", "JLinkRemoteServer.exe")
+    return 0
+
+
+def restart_remote() -> int:
+    state = managed_state()
+    restart_gdb_afterwards = port_is_open(DEFAULT_GDB_PORT)
+    device = str(state.get("device") or last_device()).strip()
+    stop_remote()
+    result = start_remote()
+    if result or not restart_gdb_afterwards:
+        return result
+    return start_gdb(device)
+
+
+def restart_gdb() -> int:
+    device = str(managed_state().get("device") or last_device()).strip()
+    if not device:
+        raise ValueError("No previous J-Link target is available.")
+    stop_gdb()
+    return start_gdb(device)
 
 
 def stop_all() -> int:
@@ -417,7 +434,10 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("status")
     commands.add_parser("targets")
     commands.add_parser("start-remote")
-    commands.add_parser("toggle-remote")
+    commands.add_parser("stop-remote")
+    commands.add_parser("restart-remote")
+    commands.add_parser("stop-gdb")
+    commands.add_parser("restart-gdb")
     commands.add_parser("stop")
     gdb = commands.add_parser("start-gdb")
     gdb.add_argument("--device", default="")
@@ -437,10 +457,16 @@ def main() -> int:
             return 0
         if args.command == "start-remote":
             return start_remote()
-        if args.command == "toggle-remote":
-            return toggle_remote()
+        if args.command == "stop-remote":
+            return stop_remote()
+        if args.command == "restart-remote":
+            return restart_remote()
         if args.command == "start-gdb":
             return start_gdb(args.device or last_device())
+        if args.command == "stop-gdb":
+            return stop_gdb()
+        if args.command == "restart-gdb":
+            return restart_gdb()
         if args.command == "stop":
             return stop_all()
     except (FileNotFoundError, OSError, ValueError) as error:

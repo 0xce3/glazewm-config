@@ -75,13 +75,26 @@ widgets:
     options:
       label: '<span class="jlink-menu-arrow"></span>'
       menu_list:
-      - title: Remote umschalten
+      - title: Remote starten
         command: powershell.exe
         args:
         - -NoProfile
         - -Command
-        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') toggle-remote'
-      - title: GDB starten ...
+        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') start-remote'
+      - title: Remote stoppen
+        command: powershell.exe
+        args:
+        - -NoProfile
+        - -Command
+        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') stop-remote'
+      - title: Remote neu starten
+        command: powershell.exe
+        args:
+        - -NoProfile
+        - -Command
+        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') restart-remote'
+      - separator: true
+      - title: GDB starten
         command: powershell.exe
         args:
         - -NoProfile
@@ -89,6 +102,18 @@ widgets:
         - Bypass
         - -Command
         - '& (Join-Path $env:USERPROFILE ''.config\yasb\jlink-target-picker.ps1'')'
+      - title: GDB stoppen
+        command: powershell.exe
+        args:
+        - -NoProfile
+        - -Command
+        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') stop-gdb'
+      - title: GDB neu starten
+        command: powershell.exe
+        args:
+        - -NoProfile
+        - -Command
+        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') restart-gdb'
       - separator: true
       - title: Alle J-Link Server stoppen
         command: powershell.exe

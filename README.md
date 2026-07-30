@@ -67,9 +67,10 @@ built-in menu commands, or `Ctrl+Q` to quit.
 The right side of YASB contains a compact J-Link status and control group:
 
 - The status shows `Off`, `Remote`, `GDB`, or `R+G`.
-- Click the arrow before the status to open a native YASB popup for toggling the
-  Remote Server, opening the searchable GDB target picker, or stopping all local
-  J-Link servers.
+- Click the arrow before the status to open a native YASB popup with separate
+  start, stop, and restart actions for the Remote and GDB servers. Starting GDB
+  opens the searchable target picker. A final action stops all local J-Link
+  servers.
 
 Status is refreshed every second. `Active` indicates that a real Remote client
 is connected; the check reads the Windows TCP table and does not connect to the
