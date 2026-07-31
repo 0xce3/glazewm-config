@@ -123,11 +123,18 @@ workspaces:
     display_name: '8: misc'
     bind_to_monitor: 2
   - name: '9'
-    display_name: '9'
+    display_name: '9: files'
     bind_to_monitor: 2
 
 window_rules:
   # --- Auto-assign apps to their home workspace ---
+
+  # Windows File Explorer -> Files (WS 9). Match the cabinet window class as
+  # explorer.exe also owns the desktop, taskbar, and other shell components.
+  - commands: ['move --workspace 9']
+    match:
+      - window_process: { regex: '(?i)^explorer$' }
+        window_class: { equals: 'CabinetWClass' }
 
   # Chrome -> Web (WS 3)
   - commands: ['move --workspace 3']
