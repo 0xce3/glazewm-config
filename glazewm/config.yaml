@@ -190,6 +190,12 @@ window_rules:
     match:
       - window_process: { regex: '(?i)^JLinkGDBServer$' }
 
+  # Notepad++ is used as a lightweight utility editor rather than part of the
+  # main Code workspace, so keep it floating on Misc.
+  - commands: ['move --workspace 8', 'set-floating --centered']
+    match:
+      - window_process: { regex: '(?i)^notepad\+\+$' }
+
   # WSLg renders Linux GUI apps through Microsoft's RDP client process. Keep
   # these standalone utility windows out of the task-specific workspaces.
   - commands: ['move --workspace 8', 'set-floating --centered']
