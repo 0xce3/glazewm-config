@@ -177,6 +177,26 @@ window_rules:
       - window_title: { regex: '(?i)^yazi$' }
         window_process: { equals: 'WindowsTerminal' }
 
+  # The J-Link Remote Server main window and its connection dialog expose the
+  # same process, title, and QWidget class. Treat both as floating utilities on
+  # Misc so neither one consumes a tile in a task-specific workspace.
+  - commands: ['move --workspace 8', 'set-floating --centered']
+    match:
+      - window_process: { regex: '(?i)^JLinkRemoteServer$' }
+
+  # WSLg renders Linux GUI apps through Microsoft's RDP client process. Keep
+  # these standalone utility windows out of the task-specific workspaces.
+  - commands: ['move --workspace 8', 'set-floating --centered']
+    match:
+      - window_process: { regex: '(?i)^msrdc$' }
+
+  # Keep modal Windows dialogs with their parent app/workspace, but don't let
+  # them join and rearrange the tiling layout. GlazeWM has equivalent built-in
+  # defaults; keeping this explicit documents the intended local behavior.
+  - commands: ['set-floating --centered']
+    match:
+      - window_class: { regex: '^(?:#32770|OperationStatusWindow)$' }
+
   # --- Ignore rules for apps that don't tile well ---
   - commands: ['ignore']
     match:

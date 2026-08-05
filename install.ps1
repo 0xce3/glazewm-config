@@ -1,4 +1,4 @@
-# Restore the GlazeWM / YASB / Windows Terminal setup from this repo.
+# Restore the GlazeWM / YASB setup from this repo.
 # Copies each tracked file to its real location, backing up any existing file.
 #
 # Usage:
@@ -42,9 +42,6 @@ function Invoke-Winget {
         Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue
     }
 }
-
-# Resolve the Windows Terminal settings path (package folder is fixed).
-$wtDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState'
 
 # TranslucentTB (transparent taskbar) MSIX package folder is fixed per publisher.
 $ttbAumid = '28017CharlesMilette.TranslucentTB_v826wp6bftszj!TranslucentTB'
@@ -106,7 +103,6 @@ $map = @(
     @{ Src = 'yasb\gruvbox-picker.ps1';         Dst = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
     @{ Src = 'yasb\jlink-control.py';           Dst = (Join-Path $env:USERPROFILE '.config\yasb\jlink-control.py') }
     @{ Src = 'yasb\jlink-target-picker.ps1';    Dst = (Join-Path $env:USERPROFILE '.config\yasb\jlink-target-picker.ps1') }
-    @{ Src = 'windows-terminal\settings.json'; Dst = (Join-Path $wtDir 'settings.json') }
     @{ Src = 'translucenttb\settings.json';    Dst = (Join-Path $ttbDir 'settings.json') }
 )
 

@@ -17,7 +17,7 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 | `yasb/gruvbox-picker.ps1` | Shared Gruvbox searchable selection dialog | `~/.config/yasb/gruvbox-picker.ps1` |
 | `yasb/jlink-control.py` | Headless J-Link server controller for YASB | `~/.config/yasb/jlink-control.py` |
 | `yasb/jlink-target-picker.ps1` | Searchable GDB target picker for YASB | `~/.config/yasb/jlink-target-picker.ps1` |
-| `windows-terminal/settings.json` | Windows Terminal profiles + Gruvbox schemes | `…/WindowsTerminal_*/LocalState/settings.json` |
+| `windows-terminal/settings.json` | Sanitized Windows Terminal reference template (never deployed automatically) | Manual reference only |
 | `translucenttb/settings.json` | TranslucentTB config (fully transparent taskbar) | `…/TranslucentTB_*/RoamingState/settings.json` |
 | `flowlauncher/Themes/Gruvbox Soft Dark.xaml` | Flow Launcher Gruvbox theme (floating app launcher) | `%APPDATA%/FlowLauncher/Themes/` |
 
@@ -49,6 +49,8 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
 Then start GlazeWM and YASB. Reload GlazeWM config with `Alt+Shift+R`.
+`install.ps1` intentionally leaves all Windows Terminal profiles, defaults, and
+machine-local settings untouched.
 
 ## Serial monitor
 
