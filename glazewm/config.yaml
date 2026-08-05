@@ -171,6 +171,12 @@ window_rules:
       - window_title: { regex: '(?i)serial' }
         window_process: { equals: 'WindowsTerminal' }
 
+  # Yazi: its dedicated Windows Terminal window -> Files (WS 9).
+  - commands: ['move --workspace 9']
+    match:
+      - window_title: { regex: '(?i)^yazi$' }
+        window_process: { equals: 'WindowsTerminal' }
+
   # --- Ignore rules for apps that don't tile well ---
   - commands: ['ignore']
     match:
@@ -280,6 +286,14 @@ keybindings:
   # Chrome. Alt+Shift+Enter -> opens and auto-moves to WS 3 via window_rule.
   - commands: ['shell-exec cmd /c start chrome']
     bindings: ['alt+shift+enter']
+
+  # Yazi terminal file manager. Its title sends it to the Files workspace (9).
+  # Focus the workspace before Windows Terminal creates its window so it never
+  # briefly joins and rearranges the layout of the currently active workspace.
+  - commands:
+      - 'focus --workspace 9'
+      - 'shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\yazi.ps1"'
+    bindings: ['alt+shift+y']
 
   # Snipping Tool: start the screen-clip overlay directly. Alt+Shift+X.
   - commands: ['shell-exec cmd /c start ms-screenclip:']

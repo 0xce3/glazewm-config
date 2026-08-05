@@ -7,6 +7,42 @@
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $MyInvocation.MyCommand.Path
 
+# Resolve WinGet even when this script is launched from WSL/non-interactive
+# PowerShell, where the WindowsApps execution alias may be missing from PATH.
+$wingetCommand = Get-Command winget.exe -ErrorAction SilentlyContinue
+if ($wingetCommand -and $wingetCommand.Source -notlike '*\Microsoft\WindowsApps\winget.exe') {
+    $winget = $wingetCommand.Source
+} else {
+    $appInstaller = Get-AppxPackage Microsoft.DesktopAppInstaller -ErrorAction SilentlyContinue |
+        Sort-Object Version -Descending |
+        Select-Object -First 1
+    $winget = if ($appInstaller) { Join-Path $appInstaller.InstallLocation 'winget.exe' } else { $null }
+}
+if (-not $winget -or -not (Test-Path $winget)) {
+    throw 'WinGet is missing. Install Microsoft App Installer and run this script again.'
+}
+
+function Invoke-Winget {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$WingetArguments)
+
+    $stdout = New-TemporaryFile
+    $stderr = New-TemporaryFile
+    try {
+        $process = Start-Process -FilePath $winget -ArgumentList $WingetArguments `
+            -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+        Get-Content $stdout
+        # APPINSTALLER_CLI_ERROR_NO_APPLICATIONS_FOUND is expected for a
+        # `winget list` probe when the requested package is not installed.
+        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne -1978335212) {
+            $errorText = Get-Content $stderr -Raw
+            throw "WinGet failed with exit code $($process.ExitCode): $errorText"
+        }
+    }
+    finally {
+        Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue
+    }
+}
+
 # Resolve the Windows Terminal settings path (package folder is fixed).
 $wtDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState'
 
@@ -33,16 +69,29 @@ foreach ($fontRegistryPath in $fontRegistryPaths) {
 }
 
 if (-not $jetBrainsMonoInstalled) {
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        Write-Host 'Installing JetBrainsMono Nerd Font...' -ForegroundColor Cyan
-        winget install --id DEVCOM.JetBrainsMonoNerdFont --exact --source winget `
-            --accept-package-agreements --accept-source-agreements --silent
-        if ($LASTEXITCODE -ne 0) { throw 'Could not install JetBrainsMono Nerd Font.' }
-    } else {
-        throw 'JetBrainsMono Nerd Font is missing and winget is not available.'
-    }
+    Write-Host 'Installing JetBrainsMono Nerd Font...' -ForegroundColor Cyan
+    Invoke-Winget install --id DEVCOM.JetBrainsMonoNerdFont --exact --source winget `
+        --accept-package-agreements --accept-source-agreements --silent
 } else {
     Write-Host 'OK:     JetBrainsMono Nerd Font is installed.' -ForegroundColor Green
+}
+
+# Install Yazi, the terminal file manager used by the GlazeWM Files workspace.
+if (-not (Invoke-Winget list --id sxyazi.yazi --exact | Select-String 'Yazi')) {
+    Write-Host 'Installing Yazi...' -ForegroundColor Cyan
+    Invoke-Winget install --id sxyazi.yazi --exact --source winget `
+        --accept-package-agreements --accept-source-agreements --silent
+} else {
+    Write-Host 'OK:     Yazi is installed.' -ForegroundColor Green
+}
+
+# On Windows, Yazi uses Git's file.exe for reliable MIME detection. Keep an
+# existing user override; otherwise configure the standard Git-for-Windows path.
+$gitFile = Join-Path $env:ProgramFiles 'Git\usr\bin\file.exe'
+if ((Test-Path $gitFile) -and [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable('YAZI_FILE_ONE', 'User'))) {
+    [Environment]::SetEnvironmentVariable('YAZI_FILE_ONE', $gitFile, 'User')
+    $env:YAZI_FILE_ONE = $gitFile
+    Write-Host "OK:     YAZI_FILE_ONE -> $gitFile" -ForegroundColor Green
 }
 
 $map = @(
@@ -51,6 +100,7 @@ $map = @(
     @{ Src = 'glazewm\taskbar.ps1';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
     @{ Src = 'glazewm\glaze-layout.ps1';       Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Src = 'glazewm\glaze-swap.ps1';         Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
+    @{ Src = 'glazewm\yazi.ps1';               Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\yazi.ps1') }
     @{ Src = 'yasb\config.yaml';               Dst = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Src = 'yasb\styles.css';                Dst = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
     @{ Src = 'yasb\gruvbox-picker.ps1';         Dst = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
@@ -103,9 +153,9 @@ if (Get-Command py -ErrorAction SilentlyContinue) {
 
 # Install TranslucentTB (transparent taskbar) if missing, and register it to
 # start at login via a Startup-folder shortcut (kept out of the GlazeWM config).
-if (-not (winget list --id CharlesMilette.TranslucentTB 2>$null | Select-String 'TranslucentTB')) {
+if (-not (Invoke-Winget list --id CharlesMilette.TranslucentTB | Select-String 'TranslucentTB')) {
     Write-Host 'Installing TranslucentTB...' -ForegroundColor Cyan
-    winget install --id CharlesMilette.TranslucentTB --source winget `
+    Invoke-Winget install --id CharlesMilette.TranslucentTB --source winget `
         --accept-package-agreements --accept-source-agreements --silent | Out-Null
 }
 
@@ -122,9 +172,9 @@ if (-not (Test-Path $startupLnk)) {
 # Install Flow Launcher (floating app launcher on the Windows key) if missing,
 # deploy the Gruvbox theme, and point its settings at it. Flow Launcher manages
 # its own start-at-login, so no extra shortcut is needed.
-if (-not (winget list --id Flow-Launcher.Flow-Launcher 2>$null | Select-String 'Flow')) {
+if (-not (Invoke-Winget list --id Flow-Launcher.Flow-Launcher | Select-String 'Flow')) {
     Write-Host 'Installing Flow Launcher...' -ForegroundColor Cyan
-    winget install --id Flow-Launcher.Flow-Launcher --source winget `
+    Invoke-Winget install --id Flow-Launcher.Flow-Launcher --source winget `
         --accept-package-agreements --accept-source-agreements --silent | Out-Null
 }
 

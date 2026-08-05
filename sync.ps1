@@ -33,6 +33,7 @@ $map = @(
     @{ Repo = 'glazewm\taskbar.ps1';            Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
     @{ Repo = 'glazewm\glaze-layout.ps1';       Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Repo = 'glazewm\glaze-swap.ps1';         Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
+    @{ Repo = 'glazewm\yazi.ps1';               Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\yazi.ps1') }
     @{ Repo = 'yasb\config.yaml';               Live = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Repo = 'yasb\styles.css';                Live = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
     @{ Repo = 'yasb\gruvbox-picker.ps1';         Live = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
