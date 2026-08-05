@@ -184,6 +184,12 @@ window_rules:
     match:
       - window_process: { regex: '(?i)^JLinkRemoteServer$' }
 
+  # Apply the same utility-window behavior to the graphical J-Link GDB Server
+  # and its QWidget-based configuration window.
+  - commands: ['move --workspace 8', 'set-floating --centered']
+    match:
+      - window_process: { regex: '(?i)^JLinkGDBServer$' }
+
   # WSLg renders Linux GUI apps through Microsoft's RDP client process. Keep
   # these standalone utility windows out of the task-specific workspaces.
   - commands: ['move --workspace 8', 'set-floating --centered']
