@@ -177,18 +177,13 @@ window_rules:
       - window_title: { regex: '(?i)^yazi$' }
         window_process: { equals: 'WindowsTerminal' }
 
-  # The J-Link Remote Server main window and its connection dialog expose the
-  # same process, title, and QWidget class. Treat both as floating utilities on
-  # Misc so neither one consumes a tile in a task-specific workspace.
+  # Treat all SEGGER/J-Link tools and dialogs as floating utilities on Misc so
+  # they never consume a tile in a task-specific workspace. Match both titles
+  # and process names to also cover tools whose executable has another label.
   - commands: ['move --workspace 8', 'set-floating --centered']
     match:
-      - window_process: { regex: '(?i)^JLinkRemoteServer$' }
-
-  # Apply the same utility-window behavior to the graphical J-Link GDB Server
-  # and its QWidget-based configuration window.
-  - commands: ['move --workspace 8', 'set-floating --centered']
-    match:
-      - window_process: { regex: '(?i)^JLinkGDBServer$' }
+      - window_title: { regex: '(?i)(?:SEGGER|J-Link)' }
+      - window_process: { regex: '(?i)^(?:JLink|SEGGER)' }
 
   # Notepad++ is used as a lightweight utility editor rather than part of the
   # main Code workspace, so keep it floating on Misc.
