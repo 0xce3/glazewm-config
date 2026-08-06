@@ -82,6 +82,30 @@ if (-not (Invoke-Winget list --id sxyazi.yazi --exact | Select-String 'Yazi')) {
     Write-Host 'OK:     Yazi is installed.' -ForegroundColor Green
 }
 
+# fzf provides Yazi's interactive terminal picker (for example the built-in
+# `z` file/directory jump) and is also used by custom search integrations.
+if (-not (Invoke-Winget list --id junegunn.fzf --exact | Select-String 'fzf')) {
+    Write-Host 'Installing fzf for Yazi...' -ForegroundColor Cyan
+    Invoke-Winget install --id junegunn.fzf --exact --source winget `
+        --accept-package-agreements --accept-source-agreements --silent
+} else {
+    Write-Host 'OK:     fzf is installed.' -ForegroundColor Green
+}
+
+# Yazi requires 7z/7zz for archive previews and extraction. The regular 7-Zip
+# installer does not need to modify the global PATH; yazi.ps1 resolves it.
+$sevenZipPaths = @(
+    (Join-Path $env:ProgramFiles '7-Zip\7z.exe')
+    $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} '7-Zip\7z.exe' })
+)
+if (-not ($sevenZipPaths | Where-Object { $_ -and (Test-Path $_) })) {
+    Write-Host 'Installing 7-Zip for Yazi archive support...' -ForegroundColor Cyan
+    Invoke-Winget install --id 7zip.7zip --exact --source winget `
+        --accept-package-agreements --accept-source-agreements --silent
+} else {
+    Write-Host 'OK:     7-Zip is installed.' -ForegroundColor Green
+}
+
 # On Windows, Yazi uses Git's file.exe for reliable MIME detection. Keep an
 # existing user override; otherwise configure the standard Git-for-Windows path.
 $gitFile = Join-Path $env:ProgramFiles 'Git\usr\bin\file.exe'
@@ -98,6 +122,8 @@ $map = @(
     @{ Src = 'glazewm\glaze-layout.ps1';       Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Src = 'glazewm\glaze-swap.ps1';         Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
     @{ Src = 'glazewm\yazi.ps1';               Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\yazi.ps1') }
+    @{ Src = 'yazi\yazi.toml';                 Dst = (Join-Path $env:APPDATA 'yazi\config\yazi.toml') }
+    @{ Src = 'yazi\keymap.toml';               Dst = (Join-Path $env:APPDATA 'yazi\config\keymap.toml') }
     @{ Src = 'yasb\config.yaml';               Dst = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Src = 'yasb\styles.css';                Dst = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
     @{ Src = 'yasb\gruvbox-picker.ps1';         Dst = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }

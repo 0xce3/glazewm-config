@@ -34,6 +34,8 @@ $map = @(
     @{ Repo = 'glazewm\glaze-layout.ps1';       Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Repo = 'glazewm\glaze-swap.ps1';         Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
     @{ Repo = 'glazewm\yazi.ps1';               Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\yazi.ps1') }
+    @{ Repo = 'yazi\yazi.toml';                 Live = (Join-Path $env:APPDATA 'yazi\config\yazi.toml') }
+    @{ Repo = 'yazi\keymap.toml';               Live = (Join-Path $env:APPDATA 'yazi\config\keymap.toml') }
     @{ Repo = 'yasb\config.yaml';               Live = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Repo = 'yasb\styles.css';                Live = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
     @{ Repo = 'yasb\gruvbox-picker.ps1';         Live = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }

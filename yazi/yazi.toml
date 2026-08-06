@@ -1,0 +1,26 @@
+# Open regular files with their Windows-associated application. This keeps
+# Yazi's directory navigation intact while making Enter behave like Explorer
+# for text/code files and images.
+[opener]
+system = [
+  { run = 'start "" %s1', desc = "Open with Windows default app", for = "windows", orphan = true },
+]
+sevenzip = [
+  { run = '7zFM.exe %s1', desc = "Browse archive with 7-Zip", for = "windows", orphan = true },
+]
+
+[open]
+prepend_rules = [
+  { url = "*.{7z,zip,rar,tar,tgz,gz,bz2,xz,zst,tar.gz,tar.bz2,tar.xz,tar.zst,zipx,cab,iso,wic}", use = "sevenzip" },
+  { mime = "text/*", use = "system" },
+  { mime = "image/*", use = "system" },
+  { mime = "application/{json,ndjson,javascript,wine-extension-ini}", use = "system" },
+]
+
+# Yocto .wic files are raw partitioned disk images. Route them directly to the
+# built-in 7-Zip archive previewer because MIME detection treats them as generic
+# binary data on Windows.
+[plugin]
+prepend_previewers = [
+  { url = "*.wic", run = "archive" },
+]
