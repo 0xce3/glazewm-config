@@ -128,7 +128,6 @@ $map = @(
     @{ Src = 'yasb\styles.css';                Dst = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
     @{ Src = 'yasb\gruvbox-picker.ps1';         Dst = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
     @{ Src = 'yasb\jlink-control.py';           Dst = (Join-Path $env:USERPROFILE '.config\yasb\jlink-control.py') }
-    @{ Src = 'yasb\jlink-target-picker.ps1';    Dst = (Join-Path $env:USERPROFILE '.config\yasb\jlink-target-picker.ps1') }
     @{ Src = 'translucenttb\settings.json';    Dst = (Join-Path $ttbDir 'settings.json') }
 )
 
@@ -159,6 +158,7 @@ Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-monitor.py') -Forc
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\jlink-manager.py') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $env:USERPROFILE '.config\yasb\jlink-menu.ps1') -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $env:USERPROFILE '.config\yasb\jlink-target-picker.ps1') -Force -ErrorAction SilentlyContinue
 
 # Install pySerial's ready-made miniterm.
 $serialRequirements = Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-serial.txt'

@@ -18,7 +18,6 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 | `yasb/styles.css` | YASB Gruvbox Soft Dark theme | `~/.config/yasb/styles.css` |
 | `yasb/gruvbox-picker.ps1` | Shared Gruvbox searchable selection dialog | `~/.config/yasb/gruvbox-picker.ps1` |
 | `yasb/jlink-control.py` | Headless J-Link server controller for YASB | `~/.config/yasb/jlink-control.py` |
-| `yasb/jlink-target-picker.ps1` | Searchable GDB target picker for YASB | `~/.config/yasb/jlink-target-picker.ps1` |
 | `windows-terminal/settings.json` | Sanitized Windows Terminal reference template (never deployed automatically) | Manual reference only |
 | `translucenttb/settings.json` | TranslucentTB config (fully transparent taskbar) | `…/TranslucentTB_*/RoamingState/settings.json` |
 | `flowlauncher/Themes/Gruvbox Soft Dark.xaml` | Flow Launcher Gruvbox theme (floating app launcher) | `%APPDATA%/FlowLauncher/Themes/` |
@@ -71,24 +70,14 @@ built-in menu commands, or `Ctrl+Q` to quit.
 
 ## J-Link manager
 
-The right side of YASB contains a compact J-Link status and control group:
+The right side of YASB contains a single `J` icon when SEGGER J-Link is
+installed. It is green while a Remote Server client is connected and gray
+otherwise. Left click toggles the Remote Server; right click restarts it.
 
-- The status shows `Off`, `Remote`, `GDB`, or `R+G`.
-- Click the `J` before the status to open a native YASB popup with separate
-  start, stop, and restart actions for the Remote and GDB servers. Starting GDB
-  opens the searchable target picker. A final action stops all local J-Link
-  servers.
-
-Status is refreshed every second. `Active` indicates that a real Remote client
-is connected; the check reads the Windows TCP table and does not connect to the
-server itself. Server processes survive YASB reloads,
-and the selected GDB target is remembered in the user's application-data
-directory. Executables are discovered from `PATH`, standard SEGGER installation
-folders, or `JLINK_BIN`; no machine-specific paths are stored in the repo.
-
-The equivalent environment variables are `JLINK_BIN`, `JLINK_DEVICE`,
-`JLINK_INTERFACE`, `JLINK_SPEED`, `JLINK_GDB_PORT`, `JLINK_REMOTE_PORT`, and
-`JLINK_LOG_DIR`.
+Status is refreshed every second by reading the Windows TCP table without
+connecting to the server itself. The executable is discovered from `PATH`,
+standard SEGGER installation folders, or `JLINK_BIN`. `JLINK_LOG_DIR` can
+override the default log directory.
 
 ## Keep the repo up to date
 
