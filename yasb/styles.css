@@ -653,6 +653,40 @@
     background-color: var(--yasb-white-alpha-05);
 }
 
+/* Battery widget */
+.battery-widget:hover {
+    background-color: var(--yasb-white-alpha-08);
+}
+
+.battery-widget .icon {
+    font-family: "JetBrainsMono NFP";
+    font-size: 14px;
+}
+
+.battery-widget .label.status-critical,
+.battery-widget .icon.status-critical {
+    color: #fb4934;
+}
+
+.battery-widget .label.status-low,
+.battery-widget .icon.status-low {
+    color: #fe8019;
+}
+
+.battery-widget .icon.status-medium {
+    color: #fabd2f;
+}
+
+.battery-widget .icon.status-high,
+.battery-widget .icon.status-full {
+    color: #b8bb26;
+}
+
+.battery-widget .label.status-charging,
+.battery-widget .icon.status-charging {
+    color: #8ec07c;
+}
+
 /* Control Center (YASB 2.0.6+) */
 .control-center-widget:hover {
     background-color: var(--yasb-white-alpha-08);

@@ -48,8 +48,38 @@ bars:
       - systray
       - wifi
       - bluetooth
+      - battery
       - control_center
 widgets:
+  battery:
+    type: yasb.battery.BatteryWidget
+    options:
+      label: "<span>{icon}</span> {percent}%"
+      label_alt: "<span>{icon}</span> {percent}% | {power}W | {time_remaining}"
+      update_interval: 5000
+      time_remaining_natural: false
+      hide_unsupported: true
+      charging_options:
+        icon_format: "{charging_icon}"
+        blink_charging_icon: true
+        blink_interval: 500
+      status_thresholds:
+        critical: 10
+        low: 25
+        medium: 75
+        high: 95
+        full: 100
+      status_icons:
+        icon_charging: "\uF0E7"
+        icon_critical: "\uF244"
+        icon_low: "\uF243"
+        icon_medium: "\uF242"
+        icon_high: "\uF241"
+        icon_full: "\uF240"
+      callbacks:
+        on_left: toggle_label
+        on_middle: do_nothing
+        on_right: do_nothing
   control_center:
     type: yasb.control_center.ControlCenterWidget
     options:
