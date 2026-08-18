@@ -177,13 +177,22 @@ window_rules:
       - window_title: { regex: '(?i)^yazi$' }
         window_process: { equals: 'WindowsTerminal' }
 
-  # Treat all SEGGER/J-Link tools and dialogs as floating utilities on Misc so
-  # they never consume a tile in a task-specific workspace. Match both titles
-  # and process names to also cover tools whose executable has another label.
+  # SEGGER's legacy GDB Server leaves its temporary Config top-level window
+  # alive after switching to the main UI. Let SEGGER manage that helper window
+  # itself; moving/resizing it through GlazeWM can leave a blank white shell.
+  - commands: ['ignore']
+    match:
+      - window_process: { regex: '(?i)^(?:JLink|SEGGER)' }
+        window_title: { regex: '(?i)\bConfig\b' }
+
+  # Treat the actual SEGGER/J-Link tool windows as floating utilities on Misc
+  # so they never consume a tile in a task-specific workspace. Config helper
+  # windows are explicitly excluded to keep this rule disjoint from the rule
+  # above.
   - commands: ['move --workspace 8', 'set-floating --centered']
     match:
-      - window_title: { regex: '(?i)(?:SEGGER|J-Link)' }
       - window_process: { regex: '(?i)^(?:JLink|SEGGER)' }
+        window_title: { not_regex: '(?i)\bConfig\b' }
 
   # Notepad++ is used as a lightweight utility editor rather than part of the
   # main Code workspace, so keep it floating on Misc.
