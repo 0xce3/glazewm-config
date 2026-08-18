@@ -43,7 +43,6 @@ bars:
       center:
       - clock
       right:
-      - jlink_menu
       - jlink_status
       - systray
       - wifi
@@ -168,86 +167,22 @@ widgets:
     type: yasb.custom.CustomWidget
     options:
       class_name: jlink-status
-      label: '{data[label]}'
-      label_alt: '{data[status]} - {data[device]}'
-      label_placeholder: J-Link
+      label: '<span class="jlink-{data[state]}">J</span>'
+      label_alt: '<span class="jlink-{data[state]}">J</span>'
+      label_placeholder: ''
       tooltip: true
-      tooltip_label: '{data[status]} | Target: {data[device]} | Remote: {data[remote_port]} | GDB: {data[gdb_port]}'
+      tooltip_label: '{data[status]} | Remote port: {data[remote_port]}'
       exec_options:
         run_cmd: py -3 %USERPROFILE%\.config\yasb\jlink-control.py status
         run_interval: 1000
         return_format: json
+        hide_empty: true
         use_shell: true
         encoding: utf-8
       callbacks:
-        on_left: toggle_label
+        on_left: exec cmd /c py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" toggle-remote
         on_middle: do_nothing
-        on_right: do_nothing
-  jlink_menu:
-    type: yasb.home.HomeWidget
-    options:
-      label: '<span class="jlink-menu-icon">J</span>'
-      menu_list:
-      - title: Start Remote
-        command: powershell.exe
-        args:
-        - -NoProfile
-        - -Command
-        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') start-remote'
-      - title: Stop Remote
-        command: powershell.exe
-        args:
-        - -NoProfile
-        - -Command
-        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') stop-remote'
-      - title: Restart Remote
-        command: powershell.exe
-        args:
-        - -NoProfile
-        - -Command
-        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') restart-remote'
-      - separator: true
-      - title: Start GDB
-        command: powershell.exe
-        args:
-        - -NoProfile
-        - -ExecutionPolicy
-        - Bypass
-        - -Command
-        - '& (Join-Path $env:USERPROFILE ''.config\yasb\jlink-target-picker.ps1'')'
-      - title: Stop GDB
-        command: powershell.exe
-        args:
-        - -NoProfile
-        - -Command
-        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') stop-gdb'
-      - title: Restart GDB
-        command: powershell.exe
-        args:
-        - -NoProfile
-        - -Command
-        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') restart-gdb'
-      - separator: true
-      - title: Stop all J-Link servers
-        command: powershell.exe
-        args:
-        - -NoProfile
-        - -Command
-        - '& (Join-Path $env:SystemRoot ''py.exe'') -3 (Join-Path $env:USERPROFILE ''.config\yasb\jlink-control.py'') stop'
-      system_menu: false
-      power_menu: false
-      blur: true
-      round_corners: true
-      round_corners_type: small
-      border_color: System
-      alignment: left
-      direction: down
-      offset_top: 6
-      offset_left: 0
-      callbacks:
-        on_left: toggle_menu
-        on_middle: do_nothing
-        on_right: do_nothing
+        on_right: exec cmd /c py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" restart-remote
   home:
     type: yasb.home.HomeWidget
     options:

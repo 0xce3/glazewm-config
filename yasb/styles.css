@@ -173,12 +173,9 @@
     padding-bottom: 2px;
 }
 
-/* J-Link server status and context-menu trigger */
+/* J-Link Remote Server: YASB hides it when SEGGER J-Link is not installed. */
 .jlink-status {
     background-color: transparent;
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: 0;
     margin-right: 4px;
     border-radius: 4px;
 }
@@ -192,14 +189,22 @@
     background-color: var(--yasb-white-alpha-15);
 }
 
-.home-widget .jlink-menu-icon {
-    color: var(--yasb-icon-fg);
+.custom-widget.jlink-status .label {
+    padding: 0;
+}
+
+.custom-widget.jlink-status .label span {
     font-family: "JetBrainsMono NFP";
     font-size: 16px;
     font-weight: 700;
-    min-width: 18px;
-    padding-left: 2px;
-    padding-right: 2px;
+}
+
+.custom-widget.jlink-status .jlink-connected {
+    color: #b8bb26;
+}
+
+.custom-widget.jlink-status .jlink-disconnected {
+    color: var(--yasb-fg-muted);
 }
 
 /* Home Menu */
