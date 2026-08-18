@@ -145,7 +145,7 @@ def managed_state() -> dict:
     return state
 
 
-def status_payload() -> dict | None:
+def status_payload(expected_state: str | None = None) -> dict | None:
     try:
         find_executable("JLinkRemoteServerCL.exe", "JLinkRemoteServer.exe")
     except FileNotFoundError:
@@ -160,6 +160,8 @@ def status_payload() -> dict | None:
     else:
         state = "disconnected"
         status = "J-Link Remote Server stopped"
+    if expected_state is not None and state != expected_state:
+        return None
     return {
         "state": state,
         "status": status,
@@ -258,6 +260,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status")
+    commands.add_parser("status-connected")
+    commands.add_parser("status-disconnected")
     commands.add_parser("start-remote")
     commands.add_parser("stop-remote")
     commands.add_parser("restart-remote")
@@ -270,6 +274,16 @@ def main() -> int:
     try:
         if args.command == "status":
             payload = status_payload()
+            if payload is not None:
+                print(json.dumps(payload))
+            return 0
+        if args.command == "status-connected":
+            payload = status_payload("connected")
+            if payload is not None:
+                print(json.dumps(payload))
+            return 0
+        if args.command == "status-disconnected":
+            payload = status_payload("disconnected")
             if payload is not None:
                 print(json.dumps(payload))
             return 0

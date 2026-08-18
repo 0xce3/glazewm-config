@@ -189,21 +189,18 @@
     background-color: var(--yasb-white-alpha-15);
 }
 
-.custom-widget.jlink-status .label {
+.custom-widget.jlink-status .icon {
+    font-family: "JetBrainsMono NFP";
+    font-size: 19px;
+    min-width: 22px;
     padding: 0;
 }
 
-.custom-widget.jlink-status .label span {
-    font-family: "JetBrainsMono NFP";
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.custom-widget.jlink-status .jlink-connected {
+.custom-widget.jlink-connected .icon {
     color: #b8bb26;
 }
 
-.custom-widget.jlink-status .jlink-disconnected {
+.custom-widget.jlink-disconnected .icon {
     color: var(--yasb-fg-muted);
 }
 
