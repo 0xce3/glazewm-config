@@ -652,3 +652,194 @@
 .systray-popup .button:hover {
     background-color: var(--yasb-white-alpha-05);
 }
+
+/* Control Center (YASB 2.0.6+) */
+.control-center-widget:hover {
+    background-color: var(--yasb-white-alpha-08);
+}
+
+.control-center-menu {
+    background-color: var(--yasb-popup-bg);
+    min-width: 360px;
+}
+
+.control-center-menu .section {
+    background-color: transparent;
+    margin: 0;
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--yasb-white-alpha-10);
+}
+
+.control-center-menu .section.system-controls {
+    padding: 12px 16px 0 16px;
+}
+
+.control-center-menu .section.sliders {
+    padding: 16px;
+}
+
+.control-center-menu .section.system-controls,
+.control-center-menu .section.power,
+.control-center-menu .section.media {
+    border-bottom: none;
+}
+
+.control-center-menu .section.system-controls .button,
+.control-center-menu .section.quick-actions .button .icon,
+.control-center-menu .section.sliders .slider .icon,
+.control-center-menu .section.sliders .slider .source-selector,
+.control-center-menu .section.power .button .icon,
+.control-center-menu .section.media .button {
+    font-family: var(--icons-font);
+    font-weight: 400;
+}
+
+.control-center-menu .section.system-controls .button {
+    background-color: var(--yasb-white-alpha-08);
+    border-radius: 16px;
+    min-height: 32px;
+    max-height: 32px;
+    min-width: 32px;
+    max-width: 32px;
+    font-size: 14px;
+}
+
+.control-center-menu .section.system-controls .button:hover,
+.control-center-menu .section.sliders .slider .source-selector:hover,
+.control-center-menu .section.media .button:hover {
+    background-color: var(--yasb-white-alpha-15);
+}
+
+.control-center-menu .section.quick-actions .button {
+    margin: 0 4px;
+}
+
+.control-center-menu .section.quick-actions .button .icon {
+    font-size: 16px;
+    background-color: var(--yasb-white-alpha-06);
+    border: 1px solid var(--yasb-white-alpha-08);
+    min-height: 48px;
+    border-radius: 6px;
+}
+
+.control-center-menu .section.quick-actions .button .icon:hover {
+    background-color: var(--yasb-white-alpha-10);
+    border-color: var(--yasb-white-alpha-15);
+}
+
+.control-center-menu .section.quick-actions .button.active .icon {
+    background-color: var(--yasb-accent);
+    border-color: var(--yasb-accent);
+    color: var(--yasb-accent-fg);
+}
+
+.control-center-menu .section.quick-actions .button.active .icon:hover {
+    background-color: var(--yasb-accent-hover);
+    border-color: var(--yasb-accent-hover);
+    color: var(--yasb-accent-fg);
+}
+
+.control-center-menu .section.quick-actions .button .title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 4px 0 8px 0;
+    padding: 0;
+}
+
+.control-center-menu .section.sliders .slider {
+    background-color: transparent;
+    border: none;
+    min-height: 34px;
+    margin: 0 4px;
+}
+
+.control-center-menu .section.sliders .slider .icon {
+    font-size: 16px;
+    min-width: 36px;
+}
+
+.control-center-menu .section.sliders .slider .value {
+    min-width: 36px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.control-center-menu .section.sliders .slider .source-selector {
+    font-size: 12px;
+    color: var(--yasb-white-alpha-70);
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background-color: transparent;
+    margin-left: 4px;
+}
+
+.control-center-menu .section.power .plan-name,
+.control-center-menu .section.power .mode-name {
+    background-color: var(--yasb-white-alpha-06);
+    border: 1px solid var(--yasb-white-alpha-08);
+    border-radius: 6px;
+    min-height: 36px;
+    margin: 0 4px;
+    padding: 6px 10px;
+}
+
+.control-center-menu .section.power .plan-name:hover,
+.control-center-menu .section.power .mode-name:hover {
+    background-color: var(--yasb-white-alpha-10);
+}
+
+.control-center-menu .section.power .button .title {
+    color: var(--yasb-white-alpha-70);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.control-center-menu .section.power .button .subtext {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.control-center-menu .section.power .button .icon {
+    color: var(--yasb-white-alpha-70);
+    font-size: 14px;
+}
+
+.control-center-menu .section.media {
+    background-color: rgba(29, 32, 33, 0.45);
+    padding: 12px;
+    border-top: 1px solid var(--yasb-white-alpha-10);
+}
+
+.control-center-menu .section.media .track-info {
+    padding-left: 8px;
+}
+
+.control-center-menu .section.media .title {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.control-center-menu .section.media .subtext {
+    color: var(--yasb-white-alpha-70);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.control-center-menu .section.media .button {
+    font-size: 14px;
+    background-color: transparent;
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 32px;
+    max-height: 32px;
+    border-radius: 6px;
+    margin-left: 4px;
+}
+
+.control-center-menu .section.quick-actions .button.disabled,
+.control-center-menu .section.sliders .slider.disabled,
+.control-center-menu .section.power .mode-name.disabled,
+.control-center-menu .section.media .button.disabled {
+    opacity: 0.5;
+}

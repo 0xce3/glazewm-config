@@ -48,9 +48,92 @@ bars:
       - systray
       - wifi
       - bluetooth
-      - volume
-      - power_menu
+      - control_center
 widgets:
+  control_center:
+    type: yasb.control_center.ControlCenterWidget
+    options:
+      label: "<span>\uE713</span>"
+      tooltip: true
+      sections_order:
+      - system_controls
+      - quick_actions
+      - sliders
+      - power
+      - media
+      popup:
+        blur: true
+        round_corners: true
+        round_corners_type: normal
+        border_color: System
+        alignment: right
+        direction: down
+        offset_top: 6
+        offset_left: 0
+      sections:
+        system_controls:
+          profile_image_size: 28
+          settings_icon: "\uE713"
+          lock_icon: "\uE72E"
+          power_icon: "\uE7E8"
+        quick_actions:
+          show: true
+          columns: 3
+          label_position: default
+          actions:
+          - id: toggle_dnd
+            label: Do Not Disturb
+            icon: "\uF285"
+          - id: toggle_mute
+            label: Mute
+            icon: "\uE74F"
+          - id: toggle_mic_mute
+            label: Mic Mute
+            icon: "\uF12E"
+          - id: screenshot
+            label: Screenshot
+            icon: "\uE91B"
+          - id: touch_keyboard
+            label: Keyboard
+            icon: "\uE765"
+          - id: toggle_theme
+            label: Dark Mode
+            icon: "\uE708"
+        sliders:
+          show: true
+          brightness:
+            show_slider: true
+            icon: "\uE706"
+            show_source_selector: true
+            source_selector_icon: "\uE972"
+          volume:
+            show_slider: true
+            icon: "\uE767"
+            show_source_selector: true
+            source_selector_icon: "\uE972"
+          microphone:
+            show_slider: true
+            icon: "\uE720"
+            show_source_selector: true
+            source_selector_icon: "\uE972"
+        power:
+          show: true
+          power_plan_title: Power Plan
+          power_mode_title: Power Mode
+          button_menu_icon: "\uE76C"
+        media:
+          show: true
+          thumbnail_size: 36
+          thumbnail_radius: 4
+          icons:
+            prev_track: "\uE892"
+            next_track: "\uE893"
+            play: "\uE768"
+            pause: "\uE769"
+      callbacks:
+        on_left: toggle_menu
+        on_middle: do_nothing
+        on_right: do_nothing
   jlink_status:
     type: yasb.custom.CustomWidget
     options:
