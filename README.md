@@ -71,8 +71,9 @@ built-in menu commands, or `Ctrl+Q` to quit.
 ## J-Link manager
 
 The right side of YASB contains a single `J` icon when SEGGER J-Link is
-installed. It is green while a Remote Server client is connected and gray
-otherwise. Left click toggles the Remote Server; right click restarts it.
+installed. It is gray while stopped, orange while the Remote Server is waiting
+for a client, and green while a client is connected. Left click toggles the
+Remote Server; right click restarts it.
 
 Status is refreshed every second by reading the Windows TCP table without
 connecting to the server itself. The executable is discovered from `PATH`,
