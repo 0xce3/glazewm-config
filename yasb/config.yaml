@@ -44,7 +44,8 @@ bars:
       - clock
       right:
       - jlink_connected
-      - jlink_disconnected
+      - jlink_running
+      - jlink_stopped
       - systray
       - wifi
       - bluetooth
@@ -184,17 +185,37 @@ widgets:
         on_left: exec cmd /c py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" toggle-remote
         on_middle: do_nothing
         on_right: exec cmd /c py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" restart-remote
-  jlink_disconnected:
+  jlink_running:
     type: yasb.custom.CustomWidget
     options:
-      class_name: jlink-status jlink-disconnected
+      class_name: jlink-status jlink-running
       label: "<span>\uF2DB</span>"
       label_alt: "<span>\uF2DB</span>"
       label_placeholder: ''
       tooltip: true
       tooltip_label: '{data[status]} | Remote port: {data[remote_port]}'
       exec_options:
-        run_cmd: py -3 %USERPROFILE%\.config\yasb\jlink-control.py status-disconnected
+        run_cmd: py -3 %USERPROFILE%\.config\yasb\jlink-control.py status-running
+        run_interval: 1000
+        return_format: json
+        hide_empty: true
+        use_shell: true
+        encoding: utf-8
+      callbacks:
+        on_left: exec cmd /c py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" toggle-remote
+        on_middle: do_nothing
+        on_right: exec cmd /c py -3 "%USERPROFILE%\.config\yasb\jlink-control.py" restart-remote
+  jlink_stopped:
+    type: yasb.custom.CustomWidget
+    options:
+      class_name: jlink-status jlink-stopped
+      label: "<span>\uF2DB</span>"
+      label_alt: "<span>\uF2DB</span>"
+      label_placeholder: ''
+      tooltip: true
+      tooltip_label: '{data[status]} | Left click to start'
+      exec_options:
+        run_cmd: py -3 %USERPROFILE%\.config\yasb\jlink-control.py status-stopped
         run_interval: 1000
         return_format: json
         hide_empty: true

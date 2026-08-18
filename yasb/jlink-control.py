@@ -155,10 +155,10 @@ def status_payload(expected_state: str | None = None) -> dict | None:
         state = "connected"
         status = "J-Link client connected"
     elif remote:
-        state = "disconnected"
+        state = "running"
         status = "J-Link Remote Server running; no client connected"
     else:
-        state = "disconnected"
+        state = "stopped"
         status = "J-Link Remote Server stopped"
     if expected_state is not None and state != expected_state:
         return None
@@ -261,7 +261,8 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status")
     commands.add_parser("status-connected")
-    commands.add_parser("status-disconnected")
+    commands.add_parser("status-running")
+    commands.add_parser("status-stopped")
     commands.add_parser("start-remote")
     commands.add_parser("stop-remote")
     commands.add_parser("restart-remote")
@@ -282,8 +283,13 @@ def main() -> int:
             if payload is not None:
                 print(json.dumps(payload))
             return 0
-        if args.command == "status-disconnected":
-            payload = status_payload("disconnected")
+        if args.command == "status-running":
+            payload = status_payload("running")
+            if payload is not None:
+                print(json.dumps(payload))
+            return 0
+        if args.command == "status-stopped":
+            payload = status_payload("stopped")
             if payload is not None:
                 print(json.dumps(payload))
             return 0

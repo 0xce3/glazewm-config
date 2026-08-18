@@ -200,7 +200,11 @@
     color: #b8bb26;
 }
 
-.custom-widget.jlink-disconnected .icon {
+.custom-widget.jlink-running .icon {
+    color: #fe8019;
+}
+
+.custom-widget.jlink-stopped .icon {
     color: var(--yasb-fg-muted);
 }
 
