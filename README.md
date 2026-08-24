@@ -11,9 +11,7 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 |------|------------|-------------|
 | `glazewm/config.yaml` | GlazeWM window manager config (workspaces, keybinds, gaps, rules) | `~/.glzr/glazewm/config.yaml` |
 | `glazewm/taskbar.ps1` | Hide/show/toggle the Windows taskbar | `~/.glzr/glazewm/taskbar.ps1` |
-| `glazewm/yazi.ps1` | Locate and launch Yazi in Windows Terminal | `~/.glzr/glazewm/yazi.ps1` |
-| `yazi/yazi.toml` | Open text, code, and image files with their Windows-associated app | `%APPDATA%/yazi/config/yazi.toml` |
-| `yazi/keymap.toml` | Quick jumps to Downloads, Documents, and WSL distributions | `%APPDATA%/yazi/config/keymap.toml` |
+| `glazewm/total-commander.ps1` | Locate and launch Total Commander | `~/.glzr/glazewm/total-commander.ps1` |
 | `yasb/config.yaml` | YASB status bar layout | `~/.config/yasb/config.yaml` |
 | `yasb/styles.css` | YASB Gruvbox Soft Dark theme | `~/.config/yasb/styles.css` |
 | `yasb/gruvbox-picker.ps1` | Shared Gruvbox searchable selection dialog | `~/.config/yasb/gruvbox-picker.ps1` |
@@ -34,7 +32,7 @@ opaque application windows, and a floating YASB bar that matches the window gaps
 - [Windows Terminal](https://github.com/microsoft/terminal)
 - [TranslucentTB](https://github.com/TranslucentTB/TranslucentTB) — `winget install CharlesMilette.TranslucentTB` (transparent taskbar; `install.ps1` handles it)
 - [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) — `winget install Flow-Launcher.Flow-Launcher` (floating launcher on the Windows key; `install.ps1` applies the Gruvbox theme)
-- [Yazi](https://github.com/sxyazi/yazi) — terminal file manager for workspace 9 (`install.ps1` installs it, fzf, 7-Zip archive support, and Git's `file.exe` MIME detection)
+- [Total Commander](https://www.ghisler.com/) — file manager for workspace 9 (`install.ps1` installs it through WinGet)
 - [SEGGER J-Link Software](https://www.segger.com/downloads/jlink/) (optional, for the J-Link manager)
 - [Python 3.9+](https://www.python.org/downloads/) and pySerial (for miniterm)
 - WSL (Ubuntu) + [my neovim config](https://github.com/0xce3/nvim-config)
@@ -103,7 +101,7 @@ powershell -ExecutionPolicy Bypass -File .\sync.ps1 "describe the change"
 | `Alt+Enter` | Windows Terminal |
 | `Alt+Shift+Enter` | Chrome |
 | `Alt+Shift+S` | Serial console |
-| `Alt+Shift+Y` | Yazi file manager (workspace 9) |
+| `Alt+Shift+Y` | Total Commander (workspace 9) |
 | `Alt+Shift+X` | Snip overlay |
 | `Alt+Shift+C` | Snipping Tool app |
 | `Alt+Shift+M` | Swap the two main monitors (everything on 0 ↔ 1) |
@@ -128,4 +126,4 @@ Global Windows Terminal keybindings — useful for the serial console scrollback
 ## Workspace layout
 
 - **Monitor 0 (dev):** `1:term` · `2:code` · `3:web` · `4:serial`
-- **Monitor 1 (comms):** `5:teams` · `6:slack` · `7:mail` · `8:misc` · `9:files` (Explorer/Yazi)
+- **Monitor 1 (comms):** `5:teams` · `6:slack` · `7:mail` · `8:misc` · `9:files` (Explorer/Total Commander)
