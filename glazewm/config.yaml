@@ -136,6 +136,11 @@ window_rules:
       - window_process: { regex: '(?i)^explorer$' }
         window_class: { equals: 'CabinetWClass' }
 
+  # Total Commander -> Files (WS 9).
+  - commands: ['move --workspace 9']
+    match:
+      - window_process: { regex: '(?i)^TOTALCMD(?:64)?$' }
+
   # Chrome -> Web (WS 3)
   - commands: ['move --workspace 3']
     match:
@@ -169,12 +174,6 @@ window_rules:
   - commands: ['move --workspace 2']
     match:
       - window_title: { regex: '(?i)serial' }
-        window_process: { equals: 'WindowsTerminal' }
-
-  # Yazi: its dedicated Windows Terminal window -> Files (WS 9).
-  - commands: ['move --workspace 9']
-    match:
-      - window_title: { regex: '(?i)^yazi$' }
         window_process: { equals: 'WindowsTerminal' }
 
   # SEGGER's legacy GDB Server leaves its temporary Config top-level window
@@ -323,12 +322,11 @@ keybindings:
   - commands: ['shell-exec cmd /c start chrome']
     bindings: ['alt+shift+enter']
 
-  # Yazi terminal file manager. Its title sends it to the Files workspace (9).
-  # Focus the workspace before Windows Terminal creates its window so it never
-  # briefly joins and rearranges the layout of the currently active workspace.
+  # Total Commander file manager. Focus Files before launching so an existing
+  # instance is activated on workspace 9 without disturbing the current layout.
   - commands:
       - 'focus --workspace 9'
-      - 'shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\yazi.ps1"'
+      - 'shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\total-commander.ps1"'
     bindings: ['alt+shift+y']
 
   # Snipping Tool: start the screen-clip overlay directly. Alt+Shift+X.
