@@ -89,6 +89,8 @@ $map = @(
     @{ Src = 'glazewm\glaze-layout.ps1';       Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Src = 'glazewm\glaze-swap.ps1';         Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
     @{ Src = 'glazewm\total-commander.ps1';    Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\total-commander.ps1') }
+    @{ Src = 'total-commander\gruvbox-soft-dark.ini'; Dst = (Join-Path $env:APPDATA 'GHISLER\gruvbox-soft-dark.ini') }
+    @{ Src = 'total-commander\apply-theme.ps1'; Dst = (Join-Path $env:APPDATA 'GHISLER\apply-theme.ps1') }
     @{ Src = 'yasb\config.yaml';               Dst = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Src = 'yasb\styles.css';                Dst = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
     @{ Src = 'yasb\gruvbox-picker.ps1';         Dst = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
@@ -125,6 +127,10 @@ Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') -F
 Remove-Item (Join-Path $env:USERPROFILE '.config\yasb\jlink-menu.ps1') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $env:USERPROFILE '.config\yasb\jlink-target-picker.ps1') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\yazi.ps1') -Force -ErrorAction SilentlyContinue
+
+# Apply the native Total Commander dark-mode palette. The helper preserves all
+# unrelated user settings and restarts Total Commander only when it was open.
+& (Join-Path $env:APPDATA 'GHISLER\apply-theme.ps1')
 
 # Install pySerial's ready-made miniterm.
 $serialRequirements = Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-serial.txt'

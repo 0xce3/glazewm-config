@@ -12,6 +12,8 @@ Everything here lets me restore the whole environment on a fresh machine in one 
 | `glazewm/config.yaml` | GlazeWM window manager config (workspaces, keybinds, gaps, rules) | `~/.glzr/glazewm/config.yaml` |
 | `glazewm/taskbar.ps1` | Hide/show/toggle the Windows taskbar | `~/.glzr/glazewm/taskbar.ps1` |
 | `glazewm/total-commander.ps1` | Locate and launch Total Commander | `~/.glzr/glazewm/total-commander.ps1` |
+| `total-commander/gruvbox-soft-dark.ini` | Native Total Commander dark-mode palette | `%APPDATA%/GHISLER/gruvbox-soft-dark.ini` |
+| `total-commander/apply-theme.ps1` | Apply the palette without replacing other Total Commander settings | `%APPDATA%/GHISLER/apply-theme.ps1` |
 | `yasb/config.yaml` | YASB status bar layout | `~/.config/yasb/config.yaml` |
 | `yasb/styles.css` | YASB Gruvbox Soft Dark theme | `~/.config/yasb/styles.css` |
 | `yasb/gruvbox-picker.ps1` | Shared Gruvbox searchable selection dialog | `~/.config/yasb/gruvbox-picker.ps1` |
@@ -32,7 +34,7 @@ opaque application windows, and a floating YASB bar that matches the window gaps
 - [Windows Terminal](https://github.com/microsoft/terminal)
 - [TranslucentTB](https://github.com/TranslucentTB/TranslucentTB) — `winget install CharlesMilette.TranslucentTB` (transparent taskbar; `install.ps1` handles it)
 - [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher) — `winget install Flow-Launcher.Flow-Launcher` (floating launcher on the Windows key; `install.ps1` applies the Gruvbox theme)
-- [Total Commander](https://www.ghisler.com/) — file manager for workspace 9 (`install.ps1` installs it through WinGet)
+- [Total Commander](https://www.ghisler.com/) — Gruvbox-themed file manager for workspace 9 (`install.ps1` installs and styles it)
 - [SEGGER J-Link Software](https://www.segger.com/downloads/jlink/) (optional, for the J-Link manager)
 - [Python 3.9+](https://www.python.org/downloads/) and pySerial (for miniterm)
 - WSL (Ubuntu) + [my neovim config](https://github.com/0xce3/nvim-config)

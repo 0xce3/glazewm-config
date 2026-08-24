@@ -34,6 +34,8 @@ $map = @(
     @{ Repo = 'glazewm\glaze-layout.ps1';       Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
     @{ Repo = 'glazewm\glaze-swap.ps1';         Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
     @{ Repo = 'glazewm\total-commander.ps1';    Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\total-commander.ps1') }
+    @{ Repo = 'total-commander\gruvbox-soft-dark.ini'; Live = (Join-Path $env:APPDATA 'GHISLER\gruvbox-soft-dark.ini') }
+    @{ Repo = 'total-commander\apply-theme.ps1'; Live = (Join-Path $env:APPDATA 'GHISLER\apply-theme.ps1') }
     @{ Repo = 'yasb\config.yaml';               Live = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
     @{ Repo = 'yasb\styles.css';                Live = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
     @{ Repo = 'yasb\gruvbox-picker.ps1';         Live = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
