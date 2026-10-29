@@ -1,0 +1,16 @@
+name: Validate public setup
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  setup:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test without changing live configuration
+        shell: powershell
+        run: .\tests\setup.tests.ps1
