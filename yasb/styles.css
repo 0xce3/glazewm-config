@@ -173,41 +173,6 @@
     padding-bottom: 2px;
 }
 
-/* J-Link Remote Server: YASB hides it when SEGGER J-Link is not installed. */
-.jlink-status {
-    background-color: transparent;
-    margin-right: 4px;
-    border-radius: 4px;
-}
-
-.custom-widget.jlink-status .widget-container {
-    padding-left: 7px;
-    padding-right: 7px;
-}
-
-.custom-widget.jlink-status .widget-container:hover {
-    background-color: var(--yasb-white-alpha-15);
-}
-
-.custom-widget.jlink-status .icon {
-    font-family: "JetBrainsMono NFP";
-    font-size: 19px;
-    min-width: 22px;
-    padding: 0;
-}
-
-.custom-widget.jlink-connected .icon {
-    color: #b8bb26;
-}
-
-.custom-widget.jlink-running .icon {
-    color: #fe8019;
-}
-
-.custom-widget.jlink-stopped .icon {
-    color: var(--yasb-fg-muted);
-}
-
 /* Home Menu */
 .home-widget:hover {
     background-color: var(--yasb-white-alpha-08);

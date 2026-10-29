@@ -2,3 +2,15 @@
 *.log
 __pycache__/
 *.py[cod]
+
+# Private machine overlays and runtime exports never belong in the public repo.
+local/
+private/
+.env
+.env.*
+*.local.*
+*.pem
+*.key
+*.pfx
+*.p12
+*.zip

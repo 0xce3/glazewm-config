@@ -1,85 +1,37 @@
-# Sync the live configs into this repo, then commit & push.
-# Copies each tracked file FROM its real location INTO the repo, so the repo
-# always reflects your current setup. One command keeps the backup up to date.
-#
-# Usage:
-#   powershell -ExecutionPolicy Bypass -File .\sync.ps1
-#   powershell -ExecutionPolicy Bypass -File .\sync.ps1 "custom commit message"
-
-param([string]$Message = "Update configs")
+#Requires -Version 5.1
+[CmdletBinding(SupportsShouldProcess)]
+param([switch]$TerminalOnly)
 
 $ErrorActionPreference = 'Stop'
-$repo = Split-Path -Parent $MyInvocation.MyCommand.Path
+. (Join-Path $PSScriptRoot 'setup\common.ps1')
 
-# Public repository guardrails: only this explicit allowlist may be staged.
-# Do not loosen this list without reviewing the new file for personal, work,
-# machine-specific, or credential data.
-$forbiddenPatterns = @(
-    '(?i)\b(?:api[_-]?key|secret|token|password)\b\s*[:=]\s*[A-Za-z0-9_\-]{12,}',
-    '(?i)\b(?:bearer\s+|ghp_|github_pat_|sk-)[A-Za-z0-9._\-]+',
-    '(?i)[A-Z]:\\Users\\[^\\]+\\',
-    '(?i)\\\\[^\\]+\\[^\\]+',
-    '(?i)[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}'
+# Validate the entire export before changing any repository file.
+$pending = @(
+    $map = if ($TerminalOnly) { @() } else { @(Get-ConfigMap) }
+    foreach ($item in $map) {
+        if (-not (Test-Path -LiteralPath $item.Live)) {
+            Write-Warning "Missing live config, not exported: $($item.Repo)"
+            continue
+        }
+        $content = [IO.File]::ReadAllText($item.Live)
+        Assert-PublicContent -Content $content -Label $item.Repo
+        $content = ConvertTo-PortableConfig $item.Repo $content
+        [pscustomobject]@{ Repo = $item.Repo; Content = $content }
+    }
+    $terminalPaths = @(Get-TerminalPaths | Where-Object { Test-Path -LiteralPath $_ })
+    if ($terminalPaths.Count -gt 1) { throw 'Multiple Stable Terminal settings files found. Select/consolidate the intended installation locally before exporting.' }
+    if ($terminalPaths.Count -eq 1) {
+        $terminal = ConvertTo-PublicTerminalSettings (Read-JsonConfig $terminalPaths[0])
+        [pscustomobject]@{ Repo = 'windows-terminal\settings.json'; Content = ($terminal | ConvertTo-Json -Depth 100) }
+    } else { Write-Warning 'No Windows Terminal settings found; public template unchanged.' }
 )
-
-# NOTE: windows-terminal\settings.json is intentionally NOT auto-synced here.
-# The live WT settings contain private/work-specific profiles (and a Windows
-# username in paths). The repo keeps a hand-sanitized template instead, so this
-# script never copies the live file back and re-leaks it. If you change the
-# Serial profile or color schemes, edit the repo template manually.
-$map = @(
-    @{ Repo = 'glazewm\config.yaml';            Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\config.yaml') }
-    @{ Repo = 'glazewm\requirements-serial.txt'; Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-serial.txt') }
-    @{ Repo = 'glazewm\taskbar.ps1';            Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
-    @{ Repo = 'glazewm\glaze-layout.ps1';       Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
-    @{ Repo = 'glazewm\glaze-swap.ps1';         Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
-    @{ Repo = 'glazewm\total-commander.ps1';    Live = (Join-Path $env:USERPROFILE '.glzr\glazewm\total-commander.ps1') }
-    @{ Repo = 'total-commander\gruvbox-soft-dark.ini'; Live = (Join-Path $env:APPDATA 'GHISLER\gruvbox-soft-dark.ini') }
-    @{ Repo = 'total-commander\apply-theme.ps1'; Live = (Join-Path $env:APPDATA 'GHISLER\apply-theme.ps1') }
-    @{ Repo = 'yasb\config.yaml';               Live = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
-    @{ Repo = 'yasb\styles.css';                Live = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
-    @{ Repo = 'yasb\gruvbox-picker.ps1';         Live = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
-    @{ Repo = 'yasb\jlink-control.py';           Live = (Join-Path $env:USERPROFILE '.config\yasb\jlink-control.py') }
-    @{ Repo = 'translucenttb\settings.json';    Live = (Join-Path $env:LOCALAPPDATA 'Packages\28017CharlesMilette.TranslucentTB_v826wp6bftszj\RoamingState\settings.json') }
-    @{ Repo = 'flowlauncher\Themes\Gruvbox Soft Dark.xaml'; Live = (Join-Path $env:APPDATA 'FlowLauncher\Themes\Gruvbox Soft Dark.xaml') }
-)
-
-foreach ($item in $map) {
-    $live = $item.Live
-    $dst  = Join-Path $repo $item.Repo
-    if (-not (Test-Path $live)) { Write-Host "SKIP (live missing): $($item.Repo)" -ForegroundColor Yellow; continue }
-    $dstDir = Split-Path -Parent $dst
-    if (-not (Test-Path $dstDir)) { New-Item -ItemType Directory -Path $dstDir -Force | Out-Null }
-    Copy-Item $live $dst -Force
-    Write-Host "PULLED: $($item.Repo)" -ForegroundColor Green
-}
-
-$trackedFiles = $map.Repo
-foreach ($relativePath in $trackedFiles) {
-    $path = Join-Path $repo $relativePath
-    if ((Test-Path $path) -and (Select-String -Path $path -Pattern $forbiddenPatterns -Quiet)) {
-        throw "Abbruch: potenziell sensible Daten in $relativePath. Datei bereinigen und erneut ausfuehren."
+foreach ($item in $pending) {
+    $destination = Join-Path $PSScriptRoot $item.Repo
+    if ($PSCmdlet.ShouldProcess($item.Repo, 'Export public config') -and
+        (Read-Host "Export $($item.Repo)? Review for work-specific content afterwards [j/N]") -match '^(?i:j|ja|y|yes)$') {
+        Write-ConfigText $destination $item.Content
     }
 }
-
-if ($Message -match '(?i)co-authored-by:') {
-    throw 'Abbruch: Commit-Nachrichten duerfen keine Co-Author-Zeile enthalten.'
-}
-
-Push-Location $repo
-try {
-    git add -- $trackedFiles
-    $status = git status --porcelain
-    if ([string]::IsNullOrWhiteSpace($status)) {
-        Write-Host "`nKeine Aenderungen - Repo ist bereits aktuell." -ForegroundColor Cyan
-        return
-    }
-    git diff --cached --check
-    if ($LASTEXITCODE -ne 0) { throw 'Abbruch: Whitespace-Fehler im zu commitenden Diff.' }
-    git commit -m $Message | Out-Null
-    git push origin main
-    Write-Host "`nGepusht: $Message" -ForegroundColor Cyan
-}
-finally {
-    Pop-Location
-}
+Write-Host 'No staging, commit or push performed. Review git diff and run check-public.ps1 before publishing.'
+Write-Host 'Terminal exports are allowlisted/sanitized. Review the diff for company-specific names before publishing.'
+Write-Host 'Flow settings, accounts, plugins, histories and local overlays are NEVER exported.'

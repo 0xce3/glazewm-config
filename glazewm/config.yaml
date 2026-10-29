@@ -80,25 +80,26 @@ window_behavior:
       shown_on_top: false
 
 workspaces:
-  # --- Monitor 0: main work (dev) ---
+  # Portable default: every workspace starts on monitor 0.
+  # Alt+Shift+Z/O selects a two/three-screen layout, clamped to attached screens.
   - name: '1'
     display_name: '1: term'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
   - name: '2'
     display_name: '2: serial'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
   - name: '3'
     display_name: '3: web'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
   - name: '4'
     display_name: '4: code'
-    bind_to_monitor: 1
+    bind_to_monitor: 0
     keep_alive: true
 
-  # --- Monitor 1: secondary (comms) ---
+  # --- Communication ---
   - name: '5'
     display_name: '5: teams'
     bind_to_monitor: 0
@@ -112,19 +113,13 @@ workspaces:
     bind_to_monitor: 0
     keep_alive: true
 
-  # --- Misc workspaces (web / extra) ---
-  # Monitor binding is location-dependent and switched at runtime by
-  # glaze-layout.ps1 (Alt+Shift+Z = home, Alt+Shift+O = office). The values
-  # below are the HOME default (monitor 1). In the office these move to the
-  # third screen (monitor 2). No `keep_alive` on purpose - a kept-alive
-  # workspace bound to a missing monitor causes a "no Workspace" fatal error,
-  # so 8/9 are created on demand and always fall back cleanly.
+  # --- Misc workspaces (created on demand) ---
   - name: '8'
     display_name: '8: misc'
-    bind_to_monitor: 2
+    bind_to_monitor: 0
   - name: '9'
     display_name: '9: files'
-    bind_to_monitor: 2
+    bind_to_monitor: 0
 
 window_rules:
   # --- Auto-assign apps to their home workspace ---
@@ -135,11 +130,6 @@ window_rules:
     match:
       - window_process: { regex: '(?i)^explorer$' }
         window_class: { equals: 'CabinetWClass' }
-
-  # Total Commander -> Files (WS 9).
-  - commands: ['move --workspace 9']
-    match:
-      - window_process: { regex: '(?i)^TOTALCMD(?:64)?$' }
 
   # Chrome -> Web (WS 3)
   - commands: ['move --workspace 3']
@@ -175,23 +165,6 @@ window_rules:
     match:
       - window_title: { regex: '(?i)serial' }
         window_process: { equals: 'WindowsTerminal' }
-
-  # SEGGER's legacy GDB Server leaves its temporary Config top-level window
-  # alive after switching to the main UI. Let SEGGER manage that helper window
-  # itself; moving/resizing it through GlazeWM can leave a blank white shell.
-  - commands: ['ignore']
-    match:
-      - window_process: { regex: '(?i)^(?:JLink|SEGGER)' }
-        window_title: { regex: '(?i)\bConfig\b' }
-
-  # Treat the actual SEGGER/J-Link tool windows as floating utilities on Misc
-  # so they never consume a tile in a task-specific workspace. Config helper
-  # windows are explicitly excluded to keep this rule disjoint from the rule
-  # above.
-  - commands: ['move --workspace 8', 'set-floating --centered']
-    match:
-      - window_process: { regex: '(?i)^(?:JLink|SEGGER)' }
-        window_title: { not_regex: '(?i)\bConfig\b' }
 
   # Notepad++ is used as a lightweight utility editor rather than part of the
   # main Code workspace, so keep it floating on Misc.
@@ -314,7 +287,7 @@ keybindings:
     bindings: ['alt+shift+w']
 
   # --- App launchers ---
-  # Windows Terminal (your WSL/neovim default profile). Alt+Enter.
+  # Windows Terminal (machine-local default profile). Alt+Enter.
   - commands: ['shell-exec wt']
     bindings: ['alt+enter']
 
@@ -322,11 +295,10 @@ keybindings:
   - commands: ['shell-exec cmd /c start chrome']
     bindings: ['alt+shift+enter']
 
-  # Total Commander file manager. Focus Files before launching so an existing
-  # instance is activated on workspace 9 without disturbing the current layout.
+  # Windows File Explorer on the Files workspace.
   - commands:
       - 'focus --workspace 9'
-      - 'shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\total-commander.ps1"'
+      - 'shell-exec explorer.exe'
     bindings: ['alt+shift+y']
 
   # Snipping Tool: start the screen-clip overlay directly. Alt+Shift+X.
@@ -353,8 +325,8 @@ keybindings:
     bindings: ['alt+shift+t']
 
   # Serial terminal: launch Windows Terminal with the "Serial" profile and a
-  # window title "SERIAL" so the window_rule sends it to WS 4.
-  # NOTE: requires a Windows Terminal profile named "Serial" (see notes).
+  # window title "SERIAL" so the window_rule sends it to WS 2.
+  # Optional: requires Python/pySerial and a locally added "Serial" profile.
   - commands: ['shell-exec wt --title SERIAL -p "Serial"']
     bindings: ['alt+shift+s']
 

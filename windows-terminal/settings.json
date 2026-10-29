@@ -1,60 +1,19 @@
 {
-    "$help":  "https://aka.ms/terminal-documentation",
     "$schema":  "https://aka.ms/terminal-profiles-schema",
-    "actions":  [
-
-                ],
+    "experimental.rendering.forceFullRepaint":  true,
     "copyFormatting":  "none",
     "copyOnSelect":  true,
-    "defaultProfile":  "{4ff56d04-d9cf-57ea-bae2-ad396374e7e3}",
+    "showTabsInTitlebar":  true,
+    "showTerminalTitleInTitlebar":  false,
+    "useAcrylicInTabRow":  true,
+    "warning.largePaste":  false,
     "disabledProfileSources":  [
                                    "Windows.Terminal.Azure",
                                    "CanonicalGroupLimited.Ubuntu24.04LTS_79rhkp1fndgsc",
                                    "Windows.Terminal.VisualStudio",
                                    "Git"
                                ],
-    "keybindings":  [
-                        {
-                            "id":  "Terminal.CopyToClipboard",
-                            "keys":  "ctrl+c"
-                        },
-                        {
-                            "id":  "Terminal.PasteFromClipboard",
-                            "keys":  "ctrl+v"
-                        },
-                        {
-                            "id":  "Terminal.DuplicatePaneAuto",
-                            "keys":  "alt+shift+d"
-                        },
-                        {
-                            "id":  "Terminal.FindText",
-                            "keys":  "ctrl+shift+f"
-                        },
-                        {
-                            "id":  "Terminal.ScrollUpPage",
-                            "keys":  "shift+pageup"
-                        },
-                        {
-                            "id":  "Terminal.ScrollDownPage",
-                            "keys":  "shift+pagedown"
-                        },
-                        {
-                            "id":  "Terminal.ScrollUp",
-                            "keys":  "ctrl+shift+up"
-                        },
-                        {
-                            "id":  "Terminal.ScrollDown",
-                            "keys":  "ctrl+shift+down"
-                        },
-                        {
-                            "id":  "Terminal.ScrollToTop",
-                            "keys":  "ctrl+shift+home"
-                        },
-                        {
-                            "id":  "Terminal.ScrollToBottom",
-                            "keys":  "ctrl+shift+end"
-                        }
-                    ],
+    "searchWebDefaultQueryUrl":  "https://www.google.com/search?q=%22%s%22",
     "newTabMenu":  [
                        {
                            "type":  "remainingProfiles"
@@ -64,58 +23,72 @@
                      "defaults":  {
                                       "colorScheme":  "Gruvbox Soft Dark",
                                       "font":  {
-                                                   "face":  "JetBrainsMono Nerd Font Mono"
+                                                   "face":  "JetBrainsMono Nerd Font Mono",
+                                                   "size":  11
                                                }
                                   },
                      "list":  [
                                   {
-                                      "commandline":  "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                                      "name":  "Windows PowerShell",
                                       "guid":  "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
                                       "hidden":  false,
-                                      "name":  "Windows PowerShell"
+                                      "commandline":  "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                                      "startingDirectory":  "%USERPROFILE%"
                                   },
                                   {
-                                      "commandline":  "%SystemRoot%\\System32\\cmd.exe",
+                                      "name":  "Command Prompt",
                                       "guid":  "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
                                       "hidden":  false,
-                                      "name":  "Command Prompt"
+                                      "commandline":  "%SystemRoot%\\System32\\cmd.exe",
+                                      "startingDirectory":  "%USERPROFILE%"
                                   },
                                   {
-                                      "guid":  "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
-                                      "hidden":  false,
-                                      "name":  "Azure Cloud Shell",
-                                      "source":  "Windows.Terminal.Azure"
-                                  },
-                                  {
+                                      "font":  {
+                                                   "size":  11
+                                               },
+                                      "name":  "Ubuntu 22.04.5 LTS",
                                       "guid":  "{4ff56d04-d9cf-57ea-bae2-ad396374e7e3}",
                                       "hidden":  false,
-                                      "name":  "Ubuntu 22.04.5 LTS",
-                                      "source":  "CanonicalGroupLimited.Ubuntu22.04LTS_79rhkp1fndgsc"
-                                  },
-                                  {
-                                      "guid":  "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}",
-                                      "hidden":  false,
-                                      "name":  "Git Bash",
-                                      "source":  "Git"
+                                      "source":  "CanonicalGroupLimited.Ubuntu22.04LTS_79rhkp1fndgsc",
+                                      "startingDirectory":  "%USERPROFILE%"
                                   },
                                   {
                                       "background":  "#32302F",
                                       "colorScheme":  "Gruvbox Soft Dark",
-                                      "commandline":  "powershell.exe -NoLogo -NoProfile -Command \"$baud = Read-Host 'Baud rate [115200]'; if ([string]::IsNullOrWhiteSpace($baud)) { $baud = 115200 }; py -m serial.tools.miniterm - $baud --encoding utf-8 --filter direct --eol CRLF --dtr 1 --rts 1 --exit-char 17\"",
                                       "font":  {
                                                    "face":  "JetBrainsMono Nerd Font Mono"
                                                },
-                                      "guid":  "{f7a3c1e0-9b2d-4c8a-a1f2-5e6d7c8b9a01}",
-                                      "icon":  "❯",
-                                      "name":  "Serial",
                                       "opacity":  85,
                                       "padding":  "0",
                                       "scrollbarState":  "hidden",
-                                      "startingDirectory":  "%USERPROFILE%",
-                                      "useAcrylic":  true
+                                      "useAcrylic":  true,
+                                      "name":  "Serial",
+                                      "guid":  "{f7a3c1e0-9b2d-4c8a-a1f2-5e6d7c8b9a01}",
+                                      "commandline":  "powershell.exe -NoLogo -NoProfile -Command \"$baud = Read-Host \u0027Baud rate [115200]\u0027; if ([string]::IsNullOrWhiteSpace($baud)) { $baud = 115200 }; py -m serial.tools.miniterm - $baud --encoding utf-8 --filter direct --eol CRLF --dtr 1 --rts 1 --exit-char 17\"",
+                                      "icon":  "❯",
+                                      "startingDirectory":  "%USERPROFILE%"
+                                  },
+                                  {
+                                      "name":  "Ubuntu-26.04",
+                                      "guid":  "{bb5e328e-fa37-507f-bb32-b036c61d79f9}",
+                                      "hidden":  false,
+                                      "source":  "Microsoft.WSL",
+                                      "startingDirectory":  "%USERPROFILE%"
+                                  },
+                                  {
+                                      "cursorShape":  "filledBox",
+                                      "font":  {
+                                                   "size":  11
+                                               },
+                                      "name":  "Ubuntu 26.04",
+                                      "guid":  "{02b6a7db-75d4-4fae-8a2a-a516bdda35d2}",
+                                      "hidden":  false,
+                                      "commandline":  "%SystemRoot%\\System32\\wsl.exe --distribution Ubuntu-26.04",
+                                      "startingDirectory":  "%USERPROFILE%"
                                   }
                               ]
                  },
+    "defaultProfile":  "{02b6a7db-75d4-4fae-8a2a-a516bdda35d2}",
     "schemes":  [
                     {
                         "background":  "#32302F",
@@ -164,10 +137,252 @@
                         "yellow":  "#D79921"
                     }
                 ],
-    "searchWebDefaultQueryUrl":  "https://www.google.com/search?q=%22%s%22",
-    "showTabsInTitlebar":  true,
-    "themes":  [
-
-               ],
-    "useAcrylicInTabRow":  true
+    "actions":  [
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[1;5D"
+                                    },
+                        "id":  "User.TmuxPreviousWindow"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[1;5C"
+                                    },
+                        "id":  "User.TmuxNextWindow"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[49;5u"
+                                    },
+                        "id":  "User.TmuxWindow1"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[50;5u"
+                                    },
+                        "id":  "User.TmuxWindow2"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[51;5u"
+                                    },
+                        "id":  "User.TmuxWindow3"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[52;5u"
+                                    },
+                        "id":  "User.TmuxWindow4"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[53;5u"
+                                    },
+                        "id":  "User.TmuxWindow5"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[54;5u"
+                                    },
+                        "id":  "User.TmuxWindow6"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[55;5u"
+                                    },
+                        "id":  "User.TmuxWindow7"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[56;5u"
+                                    },
+                        "id":  "User.TmuxWindow8"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "sendInput",
+                                        "input":  "\u001b[57;5u"
+                                    },
+                        "id":  "User.TmuxWindow9"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "moveFocus",
+                                        "direction":  "left"
+                                    },
+                        "id":  "User.moveFocus.2A0DA8E0"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "moveFocus",
+                                        "direction":  "right"
+                                    },
+                        "id":  "User.moveFocus.87C324ED"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "swapPane",
+                                        "direction":  "nextInOrder"
+                                    },
+                        "id":  "User.swapPane.D7681B66"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "moveFocus",
+                                        "direction":  "up"
+                                    },
+                        "id":  "User.moveFocus.6CD791B"
+                    },
+                    {
+                        "command":  {
+                                        "action":  "moveFocus",
+                                        "direction":  "down"
+                                    },
+                        "id":  "User.moveFocus.F747588A"
+                    }
+                ],
+    "keybindings":  [
+                        {
+                            "id":  "User.TmuxWindow1",
+                            "keys":  "ctrl+1"
+                        },
+                        {
+                            "id":  "User.TmuxWindow2",
+                            "keys":  "ctrl+2"
+                        },
+                        {
+                            "id":  "User.TmuxWindow3",
+                            "keys":  "ctrl+3"
+                        },
+                        {
+                            "id":  "User.TmuxWindow4",
+                            "keys":  "ctrl+4"
+                        },
+                        {
+                            "id":  "User.TmuxWindow5",
+                            "keys":  "ctrl+5"
+                        },
+                        {
+                            "id":  "User.TmuxWindow6",
+                            "keys":  "ctrl+6"
+                        },
+                        {
+                            "id":  "User.TmuxWindow7",
+                            "keys":  "ctrl+7"
+                        },
+                        {
+                            "id":  "User.TmuxWindow8",
+                            "keys":  "ctrl+8"
+                        },
+                        {
+                            "id":  "User.TmuxWindow9",
+                            "keys":  "ctrl+9"
+                        },
+                        {
+                            "id":  "Terminal.CopyToClipboard",
+                            "keys":  "ctrl+c"
+                        },
+                        {
+                            "id":  "Terminal.ScrollUpPage",
+                            "keys":  "shift+pgup"
+                        },
+                        {
+                            "id":  "Terminal.PasteFromClipboard",
+                            "keys":  "ctrl+v"
+                        },
+                        {
+                            "id":  "Terminal.FindText",
+                            "keys":  "ctrl+shift+f"
+                        },
+                        {
+                            "id":  "Terminal.DuplicatePaneAuto",
+                            "keys":  "alt+shift+d"
+                        },
+                        {
+                            "id":  "Terminal.ScrollDownPage",
+                            "keys":  "shift+pgdn"
+                        },
+                        {
+                            "id":  "Terminal.ResizePaneUp",
+                            "keys":  "ctrl+shift+up"
+                        },
+                        {
+                            "id":  "Terminal.ResizePaneDown",
+                            "keys":  "ctrl+shift+down"
+                        },
+                        {
+                            "id":  "Terminal.ScrollToTop",
+                            "keys":  "ctrl+shift+home"
+                        },
+                        {
+                            "id":  "Terminal.ScrollToBottom",
+                            "keys":  "ctrl+shift+end"
+                        },
+                        {
+                            "id":  null,
+                            "keys":  "f11"
+                        },
+                        {
+                            "id":  "Terminal.ResizePaneLeft",
+                            "keys":  "ctrl+shift+left"
+                        },
+                        {
+                            "id":  "User.moveFocus.6CD791B",
+                            "keys":  "ctrl+up"
+                        },
+                        {
+                            "id":  null,
+                            "keys":  "alt+shift+left"
+                        },
+                        {
+                            "id":  null,
+                            "keys":  "alt+shift+up"
+                        },
+                        {
+                            "id":  "Terminal.ResizePaneRight",
+                            "keys":  "ctrl+shift+right"
+                        },
+                        {
+                            "id":  null,
+                            "keys":  "alt+shift+right"
+                        },
+                        {
+                            "id":  null,
+                            "keys":  "alt+shift+down"
+                        },
+                        {
+                            "id":  "User.TmuxPreviousWindow",
+                            "keys":  "ctrl+left"
+                        },
+                        {
+                            "id":  "User.TmuxNextWindow",
+                            "keys":  "ctrl+right"
+                        },
+                        {
+                            "id":  "User.moveFocus.F747588A",
+                            "keys":  "ctrl+down"
+                        },
+                        {
+                            "id":  null,
+                            "keys":  "ctrl+shift+w"
+                        },
+                        {
+                            "id":  "Terminal.ClosePane",
+                            "keys":  "ctrl+w"
+                        },
+                        {
+                            "id":  "User.swapPane.D7681B66",
+                            "keys":  "ctrl+vk(20)"
+                        }
+                    ]
 }

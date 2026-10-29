@@ -1,201 +1,153 @@
-# Restore the GlazeWM / YASB setup from this repo.
-# Copies each tracked file to its real location, backing up any existing file.
-#
-# Usage:
-#   powershell -ExecutionPolicy Bypass -File .\install.ps1
+#Requires -Version 5.1
+[CmdletBinding(SupportsShouldProcess)]
+param(
+    [switch]$SkipPackages,
+    [switch]$NoAutostart
+)
 
 $ErrorActionPreference = 'Stop'
-$repo = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repo = $PSScriptRoot
+. (Join-Path $repo 'setup\common.ps1')
 
-# Resolve WinGet even when this script is launched from WSL/non-interactive
-# PowerShell, where the WindowsApps execution alias may be missing from PATH.
-$wingetCommand = Get-Command winget.exe -ErrorAction SilentlyContinue
-if ($wingetCommand -and $wingetCommand.Source -notlike '*\Microsoft\WindowsApps\winget.exe') {
-    $winget = $wingetCommand.Source
-} else {
-    $appInstaller = Get-AppxPackage Microsoft.DesktopAppInstaller -ErrorAction SilentlyContinue |
-        Sort-Object Version -Descending |
-        Select-Object -First 1
-    $winget = if ($appInstaller) { Join-Path $appInstaller.InstallLocation 'winget.exe' } else { $null }
-}
-if (-not $winget -or -not (Test-Path $winget)) {
-    throw 'WinGet is missing. Install Microsoft App Installer and run this script again.'
+function Confirm-Change {
+    param([string]$Target, [string]$Action)
+    if (-not $PSCmdlet.ShouldProcess($Target, $Action)) { return $false }
+    return ((Read-Host "$Action`n$Target`nAnwenden? [j/N]") -match '^(?i:j|ja|y|yes)$')
 }
 
 function Invoke-Winget {
-    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$WingetArguments)
+    param([string[]]$Arguments, [switch]$Probe)
+    $output = & $script:winget @Arguments 2>&1
+    $code = $LASTEXITCODE
+    if ($Probe -and $code -eq -1978335212) { return $false }
+    if ($code -ne 0) { throw "WinGet failed ($code): $($output -join [Environment]::NewLine)" }
+    if ($Probe) { return $true }
+    $output | Out-Host
+}
 
-    $stdout = New-TemporaryFile
-    $stderr = New-TemporaryFile
-    try {
-        $process = Start-Process -FilePath $winget -ArgumentList $WingetArguments `
-            -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-        Get-Content $stdout
-        # APPINSTALLER_CLI_ERROR_NO_APPLICATIONS_FOUND is expected for a
-        # `winget list` probe when the requested package is not installed.
-        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne -1978335212) {
-            $errorText = Get-Content $stderr -Raw
-            throw "WinGet failed with exit code $($process.ExitCode): $errorText"
+$packages = @(
+    'glzr-io.glazewm'
+    'AmN.yasb'
+    'Flow-Launcher.Flow-Launcher'
+    'Microsoft.WindowsTerminal'
+    'DEVCOM.JetBrainsMonoNerdFont'
+    'CharlesMilette.TranslucentTB'
+)
+$map = @(Get-ConfigMap)
+foreach ($item in $map) {
+    $source = Join-Path $repo $item.Repo
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Missing source: $($item.Repo)" }
+    Assert-PublicContent -Content ([IO.File]::ReadAllText($source)) -Label $item.Repo
+}
+
+Write-Host 'Core setup only. No accounts, work profiles, WSL, Python or licensed tools are imported.'
+Write-Host 'Close GlazeWM/YASB/Flow Launcher/TranslucentTB before applying configuration.'
+if (-not $SkipPackages) {
+    if (-not $WhatIfPreference) {
+        $command = Get-Command winget.exe -ErrorAction SilentlyContinue
+        $script:winget = if ($command) { $command.Source } else { $null }
+        if (-not $script:winget -or -not (Test-Path -LiteralPath $script:winget)) {
+            $appInstaller = Get-AppxPackage Microsoft.DesktopAppInstaller |
+                Sort-Object Version -Descending | Select-Object -First 1
+            if ($appInstaller) { $script:winget = Join-Path $appInstaller.InstallLocation 'winget.exe' }
+        }
+        if (-not $script:winget -or -not (Test-Path -LiteralPath $script:winget)) {
+            throw 'WinGet missing. Install Microsoft App Installer, then retry. No configuration was changed.'
         }
     }
-    finally {
-        Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue
+    foreach ($id in $packages) {
+        if ($WhatIfPreference) {
+            $null = $PSCmdlet.ShouldProcess($id, 'Install package if missing (WinGet)')
+            continue
+        }
+        if (Confirm-Change $id 'Paket pruefen und falls fehlend installieren (Paket-/Quellbedingungen; eventuell UAC)') {
+            if (Invoke-Winget -Arguments @('list', '--id', $id, '--exact', '--accept-source-agreements', '--disable-interactivity') -Probe) {
+                Write-Host "INSTALLED: $id"
+                continue
+            }
+            Invoke-Winget -Arguments @('install', '--id', $id, '--exact', '--source', 'winget',
+                '--accept-package-agreements', '--accept-source-agreements', '--silent', '--disable-interactivity')
+            if (-not (Invoke-Winget -Arguments @('list', '--id', $id, '--exact', '--accept-source-agreements', '--disable-interactivity') -Probe)) {
+                throw "Package not registered after installation: $id"
+            }
+        } else { Write-Warning "Skipped package: $id. Dependent features may be unavailable." }
     }
 }
 
-# TranslucentTB (transparent taskbar) MSIX package folder is fixed per publisher.
-$ttbAumid = '28017CharlesMilette.TranslucentTB_v826wp6bftszj!TranslucentTB'
-$ttbDir = Join-Path $env:LOCALAPPDATA 'Packages\28017CharlesMilette.TranslucentTB_v826wp6bftszj\RoamingState'
-
-# Windows Terminal can only apply a font family after Windows has registered it.
-$fontRegistryPaths = @(
-    'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
-    'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
-)
-$jetBrainsMonoInstalled = $false
-foreach ($fontRegistryPath in $fontRegistryPaths) {
-    if (-not (Test-Path $fontRegistryPath)) { continue }
-    $registeredFonts = (Get-ItemProperty $fontRegistryPath).PSObject.Properties
-    if ($registeredFonts | Where-Object {
-        $_.Name -match '^JetBrainsMono (?:NFM|Nerd Font Mono)' -or
-        $_.Value -match '^JetBrainsMonoNerdFontMono-'
-    }) {
-        $jetBrainsMonoInstalled = $true
-        break
-    }
+# Never kill a running app or overwrite a config it may save over on exit.
+$running = @(Get-Process -Name glazewm, yasb, 'Flow.Launcher', TranslucentTB -ErrorAction SilentlyContinue)
+if ($running.Count -and -not $WhatIfPreference) {
+    throw 'Close GlazeWM, YASB, Flow Launcher and TranslucentTB (including tray icons), then rerun with -SkipPackages. No config was changed.'
 }
-
-if (-not $jetBrainsMonoInstalled) {
-    Write-Host 'Installing JetBrainsMono Nerd Font...' -ForegroundColor Cyan
-    Invoke-Winget install --id DEVCOM.JetBrainsMonoNerdFont --exact --source winget `
-        --accept-package-agreements --accept-source-agreements --silent
-} else {
-    Write-Host 'OK:     JetBrainsMono Nerd Font is installed.' -ForegroundColor Green
-}
-
-# Install Total Commander, the file manager used by the GlazeWM Files workspace.
-if (-not (Invoke-Winget list --id Ghisler.TotalCommander --exact | Select-String 'Total Commander')) {
-    Write-Host 'Installing Total Commander...' -ForegroundColor Cyan
-    Invoke-Winget install --id Ghisler.TotalCommander --exact --source winget `
-        --accept-package-agreements --accept-source-agreements --silent
-} else {
-    Write-Host 'OK:     Total Commander is installed.' -ForegroundColor Green
-}
-
-$map = @(
-    @{ Src = 'glazewm\config.yaml';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\config.yaml') }
-    @{ Src = 'glazewm\requirements-serial.txt'; Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-serial.txt') }
-    @{ Src = 'glazewm\taskbar.ps1';            Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\taskbar.ps1') }
-    @{ Src = 'glazewm\glaze-layout.ps1';       Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-layout.ps1') }
-    @{ Src = 'glazewm\glaze-swap.ps1';         Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\glaze-swap.ps1') }
-    @{ Src = 'glazewm\total-commander.ps1';    Dst = (Join-Path $env:USERPROFILE '.glzr\glazewm\total-commander.ps1') }
-    @{ Src = 'total-commander\gruvbox-soft-dark.ini'; Dst = (Join-Path $env:APPDATA 'GHISLER\gruvbox-soft-dark.ini') }
-    @{ Src = 'total-commander\apply-theme.ps1'; Dst = (Join-Path $env:APPDATA 'GHISLER\apply-theme.ps1') }
-    @{ Src = 'yasb\config.yaml';               Dst = (Join-Path $env:USERPROFILE '.config\yasb\config.yaml') }
-    @{ Src = 'yasb\styles.css';                Dst = (Join-Path $env:USERPROFILE '.config\yasb\styles.css') }
-    @{ Src = 'yasb\gruvbox-picker.ps1';         Dst = (Join-Path $env:USERPROFILE '.config\yasb\gruvbox-picker.ps1') }
-    @{ Src = 'yasb\jlink-control.py';           Dst = (Join-Path $env:USERPROFILE '.config\yasb\jlink-control.py') }
-    @{ Src = 'translucenttb\settings.json';    Dst = (Join-Path $ttbDir 'settings.json') }
-)
-
-$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-
 foreach ($item in $map) {
-    $src = Join-Path $repo $item.Src
-    $dst = $item.Dst
-    if (-not (Test-Path $src)) { Write-Host "SKIP (missing in repo): $($item.Src)" -ForegroundColor Yellow; continue }
-
-    $dstDir = Split-Path -Parent $dst
-    if (-not (Test-Path $dstDir)) { New-Item -ItemType Directory -Path $dstDir -Force | Out-Null }
-
-    if (Test-Path $dst) {
-        $backup = "$dst.bak-$stamp"
-        Copy-Item $dst $backup -Force
-        Write-Host "BACKUP: $dst -> $backup" -ForegroundColor DarkGray
-    }
-
-    Copy-Item $src $dst -Force
-    Write-Host "OK:     $($item.Src) -> $dst" -ForegroundColor Green
+    if (Confirm-Change $item.Live "Konfiguration uebernehmen: $($item.Repo) (vorhandene Datei sichern)") {
+        $content = [IO.File]::ReadAllText((Join-Path $repo $item.Repo))
+        $content = ConvertTo-PortableConfig $item.Repo $content
+        Write-ConfigText -Path $item.Live -Content $content
+    } else { Write-Host "SKIPPED: $($item.Repo)" }
 }
 
-# Remove files superseded by the Python terminal tools.
-Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-menu.ps1') -Force -ErrorAction SilentlyContinue
-Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-jlink.txt') -Force -ErrorAction SilentlyContinue
-Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\serial-monitor.py') -Force -ErrorAction SilentlyContinue
-Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\jlink-manager.py') -Force -ErrorAction SilentlyContinue
-Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-tui.txt') -Force -ErrorAction SilentlyContinue
-Remove-Item (Join-Path $env:USERPROFILE '.config\yasb\jlink-menu.ps1') -Force -ErrorAction SilentlyContinue
-Remove-Item (Join-Path $env:USERPROFILE '.config\yasb\jlink-target-picker.ps1') -Force -ErrorAction SilentlyContinue
-Remove-Item (Join-Path $env:USERPROFILE '.glzr\glazewm\yazi.ps1') -Force -ErrorAction SilentlyContinue
+$flowPath = Join-Path $env:APPDATA 'FlowLauncher\Settings\Settings.json'
+if (Confirm-Change $flowPath 'Flow: Gruvbox, Dark, LWin-Hotkey und Sound aus zusammenfuehren') {
+    $flow = Read-JsonConfig $flowPath
+    Set-JsonProperty $flow Theme 'Gruvbox Soft Dark'
+    Set-JsonProperty $flow ColorScheme 'Dark'
+    Set-JsonProperty $flow Hotkey 'LWin'
+    Set-JsonProperty $flow UseSound $false
+    Write-ConfigText $flowPath ($flow | ConvertTo-Json -Depth 100)
+}
 
-# Apply the native Total Commander dark-mode palette. The helper preserves all
-# unrelated user settings and restarts Total Commander only when it was open.
-& (Join-Path $env:APPDATA 'GHISLER\apply-theme.ps1')
-
-# Install pySerial's ready-made miniterm.
-$serialRequirements = Join-Path $env:USERPROFILE '.glzr\glazewm\requirements-serial.txt'
-if (Get-Command py -ErrorAction SilentlyContinue) {
-    py -3 -c "import serial" 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host 'Installing the serial monitor dependency...' -ForegroundColor Cyan
-        py -3 -m pip install -r $serialRequirements
-        if ($LASTEXITCODE -ne 0) { throw 'Could not install the serial monitor Python dependency.' }
+$terminalPaths = @(Get-TerminalPaths)
+$existingTerminals = @($terminalPaths | Where-Object { Test-Path -LiteralPath $_ })
+if (-not $existingTerminals.Count) { $existingTerminals = @($terminalPaths[0]) }
+foreach ($terminalPath in $existingTerminals) {
+    if (Confirm-Change $terminalPath 'Terminal: bereinigte Profile/Einstellungen zusammenfuehren; exportiertes Standardprofil uebernehmen; lokale Zusatzprofile behalten') {
+        $settings = Read-JsonConfig $terminalPath
+        $template = Get-Content -LiteralPath (Join-Path $repo 'windows-terminal\settings.json') -Raw | ConvertFrom-Json
+        Assert-PublicContent ($template | ConvertTo-Json -Depth 100) 'Terminal template'
+        if (@($template.profiles.list | Where-Object { $_.commandline -match '(?i)wsl\.exe|serial\.tools' -or $_.source -match '(?i)Ubuntu|WSL' }).Count) {
+            Write-Warning 'Restored Ubuntu/Serial profiles need separately installed WSL distros or Python/pySerial. The core installer does not install these dependencies. Change the default profile if unavailable.'
+        }
+        $merged = Merge-TerminalSettings $settings $template
+        Write-ConfigText $terminalPath ($merged | ConvertTo-Json -Depth 100)
     }
+}
+
+if (-not $NoAutostart) {
+    $startup = [Environment]::GetFolderPath('Startup')
+    $links = @(
+        @{ Name = 'GlazeWM'; File = 'glazewm.exe'; Candidates = @(
+            (Join-Path $env:ProgramFiles 'glzr.io\GlazeWM\glazewm.exe')
+        ) }
+        @{ Name = 'Flow Launcher'; File = 'Flow.Launcher.exe'; Candidates = @(
+            (Join-Path $env:LOCALAPPDATA 'FlowLauncher\Flow.Launcher.exe')
+        ) }
+        @{ Name = 'TranslucentTB'; File = 'explorer.exe'; Candidates = @(); Arguments = 'shell:AppsFolder\28017CharlesMilette.TranslucentTB_v826wp6bftszj!TranslucentTB' }
+    )
+    foreach ($link in $links) {
+        $path = Join-Path $startup "$($link.Name).lnk"
+        if (-not (Confirm-Change $path 'Autostart bei Anmeldung einrichten (YASB startet durch GlazeWM)')) { continue }
+        $target = $link.Candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+        if (-not $target) {
+            $command = Get-Command $link.File -ErrorAction SilentlyContinue
+            if ($command) { $target = $command.Source }
+        }
+        if (-not $target) { throw "Cannot find $($link.File). Start the installed app once, reopen PowerShell and retry." }
+        if (-not (Test-Path -LiteralPath $startup)) { New-Item -ItemType Directory -Path $startup -Force | Out-Null }
+        Backup-ConfigFile $path
+        $shell = New-Object -ComObject WScript.Shell
+        $shortcut = $shell.CreateShortcut($path)
+        $shortcut.TargetPath = $target
+        $shortcut.WorkingDirectory = Split-Path -Parent $target
+        $shortcut.Arguments = if ($link.Arguments) { $link.Arguments } else { '' }
+        if ($link.Name -eq 'GlazeWM' -and $target -like '*\cli\glazewm.exe') { $shortcut.Arguments = 'start' }
+        $shortcut.Save()
+        if (-not (Test-Path -LiteralPath $path)) { throw "Startup shortcut was not created: $path" }
+    }
+}
+if ($WhatIfPreference) {
+    Write-Host 'Preview only: no packages, files, processes or startup entries changed.'
 } else {
-    Write-Host 'SKIP: Python launcher not found; install Python 3.9+ to use the Serial profile.' -ForegroundColor Yellow
+    Write-Host 'Selected changes applied. No apps were started. Sign out/in to use approved startup entries.'
+    Write-Host 'Monitor default: all workspaces on monitor 0. Alt+Shift+Z/O selects a 2/3-screen layout with single-screen fallback.'
 }
-
-# Install TranslucentTB (transparent taskbar) if missing, and register it to
-# start at login via a Startup-folder shortcut (kept out of the GlazeWM config).
-if (-not (Invoke-Winget list --id CharlesMilette.TranslucentTB | Select-String 'TranslucentTB')) {
-    Write-Host 'Installing TranslucentTB...' -ForegroundColor Cyan
-    Invoke-Winget install --id CharlesMilette.TranslucentTB --source winget `
-        --accept-package-agreements --accept-source-agreements --silent | Out-Null
-}
-
-$startupLnk = Join-Path ([Environment]::GetFolderPath('Startup')) 'TranslucentTB.lnk'
-if (-not (Test-Path $startupLnk)) {
-    $ws = New-Object -ComObject WScript.Shell
-    $sc = $ws.CreateShortcut($startupLnk)
-    $sc.TargetPath = 'explorer.exe'
-    $sc.Arguments = 'shell:AppsFolder\' + $ttbAumid
-    $sc.Save()
-    Write-Host "OK:     TranslucentTB autostart -> $startupLnk" -ForegroundColor Green
-}
-
-# Install Flow Launcher (floating app launcher on the Windows key) if missing,
-# deploy the Gruvbox theme, and point its settings at it. Flow Launcher manages
-# its own start-at-login, so no extra shortcut is needed.
-if (-not (Invoke-Winget list --id Flow-Launcher.Flow-Launcher | Select-String 'Flow')) {
-    Write-Host 'Installing Flow Launcher...' -ForegroundColor Cyan
-    Invoke-Winget install --id Flow-Launcher.Flow-Launcher --source winget `
-        --accept-package-agreements --accept-source-agreements --silent | Out-Null
-}
-
-$flowThemeDir = Join-Path $env:APPDATA 'FlowLauncher\Themes'
-$flowTheme = Join-Path $repo 'flowlauncher\Themes\Gruvbox Soft Dark.xaml'
-if (Test-Path $flowTheme) {
-    if (-not (Test-Path $flowThemeDir)) { New-Item -ItemType Directory -Path $flowThemeDir -Force | Out-Null }
-    Copy-Item $flowTheme (Join-Path $flowThemeDir 'Gruvbox Soft Dark.xaml') -Force
-    Write-Host "OK:     Flow Launcher theme -> $flowThemeDir" -ForegroundColor Green
-}
-
-# Patch the three settings we care about (theme, dark scheme, Windows-key hotkey)
-# without overwriting Flow Launcher's machine-local state. Flow must be closed.
-$flowSettings = Join-Path $env:APPDATA 'FlowLauncher\Settings\Settings.json'
-if (Test-Path $flowSettings) {
-    Stop-Process -Name 'Flow.Launcher' -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Milliseconds 800
-    $json = Get-Content $flowSettings -Raw | ConvertFrom-Json
-    $json.Theme = 'Gruvbox Soft Dark'
-    $json.ColorScheme = 'Dark'
-    $json.Hotkey = 'LWin'
-    $json.UseSound = $false
-    $json | ConvertTo-Json -Depth 32 | Set-Content $flowSettings -Encoding UTF8
-    Write-Host "OK:     Flow Launcher settings (theme/dark/LWin hotkey/no sound)" -ForegroundColor Green
-}
-
-Write-Host ''
-Write-Host 'Done. Start GlazeWM + YASB, then reload GlazeWM with Alt+Shift+R.' -ForegroundColor Cyan
-Write-Host 'TranslucentTB starts at next login (or launch it now for a transparent taskbar).' -ForegroundColor Cyan
-Write-Host 'Make sure dependencies are installed (see README.md).' -ForegroundColor Cyan

@@ -1,54 +1,53 @@
-# Switch GlazeWM workspace->monitor layout between "home" and "office".
-#
-#   home   (2 monitors): main/dev = monitor 0 (left), laptop/comms = monitor 1
-#   office (3 monitors): laptop/comms = monitor 0, main/dev = monitor 1,
-#                        third screen (right) = monitor 2
-#
-# It rewrites only the `bind_to_monitor:` values in config.yaml, then reloads
-# GlazeWM. Bound via Alt+Shift+O (office) / Alt+Shift+Z (home).
-#
-# Usage:
-#   powershell -File glaze-layout.ps1 home
-#   powershell -File glaze-layout.ps1 office
-
-param([ValidateSet('home', 'office')][string]$Layout = 'home')
+# home: dev on 0, communication on 1. office: dev on 1, communication on 0,
+# utilities on 2. Missing screens fall back to the last attached monitor.
+param([ValidateSet('home', 'office', 'swap')][string]$Layout = 'home')
 
 $ErrorActionPreference = 'Stop'
 $config = Join-Path $env:USERPROFILE '.glzr\glazewm\config.yaml'
-$glaze  = 'C:\Program Files\glzr.io\GlazeWM\cli\glazewm.exe'
+$command = Get-Command glazewm.exe -ErrorAction SilentlyContinue
+$glaze = if ($command) { $command.Source } else { Join-Path $env:ProgramFiles 'glzr.io\GlazeWM\cli\glazewm.exe' }
+if (-not (Test-Path -LiteralPath $glaze)) { throw 'GlazeWM CLI not found. Reopen PowerShell after installation.' }
 
-# workspace name -> monitor index, per layout
-if ($Layout -eq 'office') {
-    $map = @{ '1'=1; '2'=1; '3'=1; '4'=1; '5'=0; '6'=0; '7'=0; '8'=2; '9'=2 }
-} else {
-    $map = @{ '1'=0; '2'=0; '3'=0; '4'=0; '5'=1; '6'=1; '7'=1; '8'=1; '9'=1 }
+function Invoke-GlazeQuery {
+    param([string[]]$Arguments)
+    $output = & $glaze @Arguments
+    if ($LASTEXITCODE -ne 0) { throw "GlazeWM command failed: $Arguments" }
+    $result = ($output -join "`n") | ConvertFrom-Json
+    if (-not $result.success) { throw "GlazeWM rejected command: $Arguments" }
+    return $result.data
 }
 
-$lines   = Get-Content -LiteralPath $config
+$monitors = (Invoke-GlazeQuery @('query', 'monitors')).monitors
+$count = @($monitors).Count
+if ($count -lt 1) { throw 'GlazeWM reported no monitors. Start the window manager first.' }
+$workspaces = (Invoke-GlazeQuery @('query', 'workspaces')).workspaces
+$existingNames = @($workspaces | ForEach-Object { $_.name })
+$map = if ($Layout -eq 'office') {
+    @{ '1'=1; '2'=1; '3'=1; '4'=1; '5'=0; '6'=0; '7'=0; '8'=2; '9'=2 }
+} else {
+    @{ '1'=0; '2'=0; '3'=0; '4'=0; '5'=1; '6'=1; '7'=1; '8'=1; '9'=1 }
+}
+$lines = [IO.File]::ReadAllLines($config)
 $current = $null
 for ($i = 0; $i -lt $lines.Count; $i++) {
-    if ($lines[$i] -match "^\s*-\s*name:\s*'([0-9])'") {
-        $current = $Matches[1]
-        continue
-    }
-    if ($current -and $lines[$i] -match '^(\s*bind_to_monitor:\s*)\d+\s*$') {
-        if ($map.ContainsKey($current)) {
-            $lines[$i] = "$($Matches[1])$($map[$current])"
-        }
+    if ($lines[$i] -match "^\s*-\s*name:\s*'([0-9])'") { $current = $Matches[1]; continue }
+    if ($current -and $lines[$i] -match '^(\s*bind_to_monitor:\s*)(\d+)\s*$') {
+        $prefix = $Matches[1]
+        $monitor = [int]$Matches[2]
+        if ($Layout -eq 'swap') {
+            if ($monitor -eq 0) { $monitor = 1 } elseif ($monitor -eq 1) { $monitor = 0 }
+        } else { $monitor = $map[$current] }
+        $monitor = [Math]::Min($monitor, $count - 1)
+        $map[$current] = $monitor
+        $lines[$i] = "$prefix$monitor"
         $current = $null
     }
 }
-Set-Content -LiteralPath $config -Value $lines
-
-if (Test-Path $glaze) {
-    # Reload so the in-memory config + on-demand workspaces (8/9) pick up the
-    # new bindings.
-    & $glaze command wm-reload-config | Out-Null
-
-    # wm-reload-config does NOT relocate already-existing workspaces, so nudge
-    # each one to its target monitor. Non-existent workspaces (e.g. 8/9 without
-    # keep_alive) just return success:false and are harmlessly skipped.
-    foreach ($ws in $map.Keys) {
-        & $glaze command update-workspace-config --workspace $ws --bind-to-monitor $map[$ws] | Out-Null
+Copy-Item -LiteralPath $config -Destination "$config.bak-$([guid]::NewGuid().ToString('N'))"
+[IO.File]::WriteAllLines($config, $lines, [Text.UTF8Encoding]::new($false))
+$null = Invoke-GlazeQuery @('command', 'wm-reload-config')
+foreach ($name in $map.Keys) {
+    if ($name -in $existingNames) {
+        $null = Invoke-GlazeQuery @('command', 'update-workspace-config', '--workspace', $name, '--bind-to-monitor', [string]$map[$name])
     }
 }
