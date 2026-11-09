@@ -24,7 +24,7 @@ From a local checkout:
 ```
 
 - Every package, configuration change and startup entry requires confirmation.
-- Existing files are backed up as `.bak-*`; restore these manually if needed.
+- Approved configuration changes overwrite the existing files.
 - Close GlazeWM, YASB, Flow Launcher and TranslucentTB before applying configuration.
 - Terminal profiles and settings are merged; additional local profiles are preserved.
 - Startup is optional (`-NoAutostart`). Sign out/in or start the apps manually.
@@ -67,7 +67,7 @@ machine-specific WSL IDs and start directories are normalized.
 Unknown commands, environment variables and private application state are excluded.
 
 Privacy checks are heuristic. Review every diff for credentials and company-specific
-content before publishing. Keep private files and backups outside the repository.
+content before publishing. Keep private files outside the repository.
 
 ## Tests
 

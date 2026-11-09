@@ -47,22 +47,12 @@ function Assert-PublicContent {
     }
 }
 
-function Backup-ConfigFile {
-    param([Parameter(Mandatory)][string]$Path)
-    if (Test-Path -LiteralPath $Path) {
-        $backup = "$Path.bak-$(Get-Date -Format 'yyyyMMdd-HHmmssfff')-$([guid]::NewGuid().ToString('N').Substring(0,8))"
-        Copy-Item -LiteralPath $Path -Destination $backup
-        Write-Host "BACKUP: $backup"
-    }
-}
-
 function Write-ConfigText {
     param([string]$Path, [string]$Content)
     $parent = Split-Path -Parent $Path
     if (-not (Test-Path -LiteralPath $parent)) {
         New-Item -ItemType Directory -Path $parent -Force | Out-Null
     }
-    Backup-ConfigFile -Path $Path
     [IO.File]::WriteAllText($Path, $Content, [Text.UTF8Encoding]::new($false))
 }
 

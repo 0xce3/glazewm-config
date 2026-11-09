@@ -183,9 +183,7 @@ try {
     $path = Join-Path $temp 'config.json'
     Write-ConfigText $path '{"original":true}'
     Write-ConfigText $path '{"new":true}'
-    $backup = @(Get-ChildItem -LiteralPath $temp -Filter 'config.json.bak-*')
-    Assert ($backup.Count -eq 1) 'Existing file is backed up'
-    Assert (([IO.File]::ReadAllText($backup[0].FullName)) -eq '{"original":true}') 'Backup preserves exact original content'
+    Assert (@(Get-ChildItem -LiteralPath $temp -Filter 'config.json.bak-*').Count -eq 0) 'Writing configuration creates no backup'
     Assert (([IO.File]::ReadAllText($path)) -eq '{"new":true}') 'New content is persistent'
     $empty = Read-JsonConfig (Join-Path $temp 'missing.json')
     Set-JsonProperty $empty Theme 'Gruvbox Soft Dark'
@@ -265,7 +263,7 @@ try {
         $terminalAfter = Read-JsonConfig $terminalPath
         Assert ($terminalAfter.url -eq $parsed.url -and $terminalAfter.profiles.defaults.colorScheme -eq 'Gruvbox Soft Dark') 'Installer merges real JSONC file'
         & (Join-Path $repo 'install.ps1') -SkipPackages -NoAutostart | Out-Null
-        Assert (@(Get-ChildItem -LiteralPath (Split-Path -Parent $flowPath) -Filter 'Settings.json.bak-*').Count -eq 2) 'Repeated installation backs up each Flow version'
+        Assert (@(Get-ChildItem -LiteralPath (Split-Path -Parent $flowPath) -Filter 'Settings.json.bak-*').Count -eq 0) 'Repeated installation creates no Flow backups'
         Assert ((Read-JsonConfig $terminalPath | ConvertTo-Json -Depth 100) -eq ($terminalAfter | ConvertTo-Json -Depth 100)) 'Full repeated deployment is idempotent'
         function Read-Host { return '' }
         Write-ConfigText $flowPath '{"Theme":"Declined"}'

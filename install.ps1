@@ -80,7 +80,7 @@ if ($running.Count -and -not $WhatIfPreference) {
     throw 'Close GlazeWM, YASB, Flow Launcher and TranslucentTB (including tray icons), then rerun with -SkipPackages. No config was changed.'
 }
 foreach ($item in $map) {
-    if (Confirm-Change $item.Live "Konfiguration uebernehmen: $($item.Repo) (vorhandene Datei sichern)") {
+    if (Confirm-Change $item.Live "Konfiguration uebernehmen: $($item.Repo)") {
         $content = [IO.File]::ReadAllText((Join-Path $repo $item.Repo))
         $content = ConvertTo-PortableConfig $item.Repo $content
         Write-ConfigText -Path $item.Live -Content $content
@@ -126,6 +126,11 @@ if (-not $NoAutostart) {
     )
     foreach ($link in $links) {
         $path = Join-Path $startup "$($link.Name).lnk"
+        if ($link.Name -eq 'Flow Launcher' -and
+            (Get-ItemPropertyValue -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'Flow.Launcher' -ErrorAction SilentlyContinue)) {
+            Write-Host 'SKIPPED: Flow Launcher already starts from the user Run key.'
+            continue
+        }
         if (-not (Confirm-Change $path 'Autostart bei Anmeldung einrichten (YASB startet durch GlazeWM)')) { continue }
         $target = $link.Candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
         if (-not $target) {
@@ -134,7 +139,6 @@ if (-not $NoAutostart) {
         }
         if (-not $target) { throw "Cannot find $($link.File). Start the installed app once, reopen PowerShell and retry." }
         if (-not (Test-Path -LiteralPath $startup)) { New-Item -ItemType Directory -Path $startup -Force | Out-Null }
-        Backup-ConfigFile $path
         $shell = New-Object -ComObject WScript.Shell
         $shortcut = $shell.CreateShortcut($path)
         $shortcut.TargetPath = $target

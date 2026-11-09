@@ -43,7 +43,6 @@ for ($i = 0; $i -lt $lines.Count; $i++) {
         $current = $null
     }
 }
-Copy-Item -LiteralPath $config -Destination "$config.bak-$([guid]::NewGuid().ToString('N'))"
 [IO.File]::WriteAllLines($config, $lines, [Text.UTF8Encoding]::new($false))
 $null = Invoke-GlazeQuery @('command', 'wm-reload-config')
 foreach ($name in $map.Keys) {
