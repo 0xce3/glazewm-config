@@ -185,6 +185,28 @@ try {
     Write-ConfigText $path '{"new":true}'
     Assert (@(Get-ChildItem -LiteralPath $temp -Filter 'config.json.bak-*').Count -eq 0) 'Writing configuration creates no backup'
     Assert (([IO.File]::ReadAllText($path)) -eq '{"new":true}') 'New content is persistent'
+    $startupFixture = Join-Path $temp 'Startup'
+    $startupBackups = Join-Path $temp 'startup-backups'
+    New-Item -ItemType Directory -Path $startupFixture | Out-Null
+    $shortcutPath = Join-Path $startupFixture 'GlazeWM.lnk'
+    [IO.File]::WriteAllText($shortcutPath, 'original shortcut')
+    New-Item -ItemType Directory -Path $startupBackups | Out-Null
+    $legacyNames = @('GlazeWM.lnk.bak-20261029-103558988-a51d7671', 'Flow Launcher.lnk.bak-20261029-103558', 'TranslucentTB.lnk.bak-20261029-103558988-12345678')
+    foreach ($name in $legacyNames) { [IO.File]::WriteAllText((Join-Path $startupFixture $name), 'legacy backup') }
+    $unrelated = Join-Path $startupFixture 'Other.lnk.bak-20261029-103558'
+    [IO.File]::WriteAllText($unrelated, 'unrelated')
+    # Existing destination must not be overwritten during migration.
+    [IO.File]::WriteAllText((Join-Path $startupBackups $legacyNames[0]), 'existing backup')
+    Move-LegacyStartupBackups -StartupPath $startupFixture -BackupDirectory $startupBackups -WhatIf
+    Assert (@(Get-ChildItem -LiteralPath $startupFixture).Count -eq 5) 'Repair preview does not move files'
+    Move-LegacyStartupBackups -StartupPath $startupFixture -BackupDirectory $startupBackups -Confirm:$false
+    Assert (@(Get-ChildItem -LiteralPath $startupFixture).Count -eq 2) 'Repair removes only installer-generated backups from Startup'
+    Assert (([IO.File]::ReadAllText($shortcutPath)) -eq 'original shortcut') 'Repair preserves active shortcut'
+    Assert (([IO.File]::ReadAllText($unrelated)) -eq 'unrelated') 'Repair preserves unrelated files'
+    Assert (([IO.File]::ReadAllText((Join-Path $startupBackups $legacyNames[0]))) -eq 'existing backup') 'Repair preserves colliding backup'
+    Assert (@(Get-ChildItem -LiteralPath $startupBackups).Count -eq 4) 'Repair retains all legacy backup contents'
+    Move-LegacyStartupBackups -StartupPath $startupFixture -BackupDirectory $startupBackups -Confirm:$false
+    Assert (@(Get-ChildItem -LiteralPath $startupBackups).Count -eq 4) 'Repair is idempotent'
     $empty = Read-JsonConfig (Join-Path $temp 'missing.json')
     Set-JsonProperty $empty Theme 'Gruvbox Soft Dark'
     Set-JsonProperty $empty UseSound $false

@@ -29,6 +29,11 @@ From a local checkout:
 - Terminal profiles and settings are merged; additional local profiles are preserved.
 - Startup is optional (`-NoAutostart`). Sign out/in or start the apps manually.
 
+Startup shortcut backups are stored in `%LOCALAPPDATA%\glazewm-config\backups\startup`,
+not in the Startup folder. If an older installation causes “Open with” prompts
+at sign-in, run `.\repair-startup.ps1`. It moves only installer-generated backup
+files out of Startup, with confirmation; active shortcuts remain unchanged.
+
 WSL, Python and other development tools are not installed. The default Terminal
 profile requires **Ubuntu 26.04**; choose another default if unavailable.
 The Serial profile requires Python and [pySerial](glazewm/requirements-serial.txt).

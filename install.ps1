@@ -115,6 +115,9 @@ foreach ($terminalPath in $existingTerminals) {
 
 if (-not $NoAutostart) {
     $startup = [Environment]::GetFolderPath('Startup')
+    if (Confirm-Change $startup 'Alte Installer-Backups aus dem Autostart in den lokalen Backup-Ordner verschieben') {
+        Move-LegacyStartupBackups -StartupPath $startup -Confirm:$false
+    }
     $links = @(
         @{ Name = 'GlazeWM'; File = 'glazewm.exe'; Candidates = @(
             (Join-Path $env:ProgramFiles 'glzr.io\GlazeWM\glazewm.exe')
