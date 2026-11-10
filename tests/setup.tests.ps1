@@ -27,6 +27,27 @@ try {
     }
     Assert ($parseErrors.Count -eq 0) "All PowerShell files parse: $parseErrors"
 
+    $taskbarAst = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'glazewm\taskbar.ps1'), [ref]$null, [ref]$null)
+    $definition = $taskbarAst.Find({ param($node)
+        $node -is [Management.Automation.Language.StringConstantExpressionAst] -and $node.Value.StartsWith('using System;')
+    }, $true).Value
+    $compileJob = Start-Job -ScriptBlock {
+        param($source)
+        $ErrorActionPreference = 'Stop'
+        Add-Type -TypeDefinition $source -ReferencedAssemblies System, System.Windows.Forms
+        'FRONTMOST_HELPER_COMPILED'
+        if (-not [YasbFrontmost]::IsTrayBackdrop(2240, 2560, 0, 2560)) { throw 'Right-edge tray backdrop not recognized' }
+        if ([YasbFrontmost]::IsTrayBackdrop(0, 1024, 0, 2560)) { throw 'Workspace bar classified as backdrop' }
+        if (-not [YasbFrontmost]::IsTrayBackdrop(2240, 2544, 0, 2560)) { throw 'Inset right backdrop not recognized' }
+        if (-not [YasbFrontmost]::IsTrayBackdrop(-320, 0, -1920, 0)) { throw 'Negative monitor coordinates not supported' }
+        if (-not [YasbFrontmost]::IsTrayBackdrop(-998, -384, -1920, 0)) { throw 'Mixed-DPI right backdrop not recognized' }
+        if ([YasbFrontmost]::IsTrayBackdrop(0, 2560, 0, 2560)) { throw 'Full-width bar classified as backdrop' }
+        'BACKDROP_POLICY_OK'
+    } -ArgumentList $definition
+    $compileResult = @($compileJob | Receive-Job -Wait -AutoRemoveJob -ErrorAction Stop)
+    Assert ($compileResult -contains 'FRONTMOST_HELPER_COMPILED') 'Taskbar and frontmost helpers compile without changing desktop state'
+    Assert ($compileResult -contains 'BACKDROP_POLICY_OK') 'Tray background policy distinguishes right-edge backdrops from workspace bars'
+
     $jsonc = @'
 {
   // comment

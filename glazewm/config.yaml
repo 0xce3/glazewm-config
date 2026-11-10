@@ -4,13 +4,16 @@ general:
   # command below starts it. Adjust the path if you installed elsewhere.
   startup_commands:
     - 'shell-exec yasbc start'
-    # Auto-hide the Windows taskbar (hidden, but reappears on hover / Win key).
-    - 'shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\taskbar.ps1" autohide'
+    - 'shell-exec cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\taskbar.ps1" show'
+    - 'shell-exec cmd /c powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\taskbar.ps1" frontmost'
 
   # Stop YASB cleanly on shutdown.
-  shutdown_commands: ['shell-exec yasbc stop']
+  shutdown_commands:
+    - 'shell-exec yasbc stop'
+    - 'shell-exec cmd /c powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\taskbar.ps1" stop-frontmost'
 
-  config_reload_commands: []
+  config_reload_commands:
+    - 'shell-exec cmd /c powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "%USERPROFILE%\.glzr\glazewm\taskbar.ps1" frontmost'
 
   # Don't steal focus on cursor movement - keyboard-driven workflow.
   focus_follows_cursor: false
@@ -35,23 +38,17 @@ gaps:
   # Gap between adjacent tiled windows.
   inner_gap: '5px'
 
-  # Gap between windows and the screen edge. YASB reserves its own height at
-  # the top (work area already starts below the bar), so `top` only needs the
-  # same 12px breathing room as the other sides — NOT bar-height + padding,
-  # otherwise the gap doubles. If windows ever overlap the bar, bump `top` up.
   outer_gap:
-    top: '5px'
-    right: '5px'
+    top: '2px'
+    right: '0px'
     bottom: '5px'
-    left: '5px'
+    left: '0px'
 
 window_effects:
-  # Focused window: Gruvbox orange border so the active pane is obvious.
   focused_window:
     border:
       enabled: true
-      # Gruvbox orange for the focused window.
-      color: '#fe8019'
+      color: '#8de5df'
     hide_title_bar:
       enabled: false
     corner_style:

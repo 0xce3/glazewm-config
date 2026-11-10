@@ -5,7 +5,7 @@
 
 /* Root Variables */
 :root {
-    --yasb-bar-bg: rgba(50, 48, 47, 0.85);
+    --yasb-bar-bg: rgba(40, 40, 40, 0.9);
     --yasb-surface-alt: rgb(60, 56, 54);
     --yasb-bar-border: #3c3836;
     --yasb-popup-bg: rgba(50, 48, 47, 0.85);
@@ -46,12 +46,38 @@
     color: var(--yasb-fg);
 }
 
-/* Bar - floating, 12px gap left/right to match GlazeWM window gaps */
-.yasb-bar {
+.yasb-bar,
+.yasb-tray-island {
     background-color: var(--yasb-bar-bg);
-    margin: 0 5px;
+    margin: 0;
     padding: 0px 8px;
-    border-radius: 6px;
+    border-radius: 0;
+}
+
+.yasb-bar.adaptive,
+.yasb-tray-island.adaptive {
+    border: none;
+    -qproperty-railheight: 0;
+    -qproperty-islandradius: 16;
+    -qproperty-grouppadding: 8;
+    -qproperty-islands: true;
+    -qproperty-edgeradius: 0;
+}
+
+.yasb-bar.adaptive {
+    margin-right: 1px;
+}
+
+.yasb-bar.adaptive .widget {
+    background-color: transparent;
+}
+
+.yasb-tray-island .tray-backdrop-widget {
+    min-width: 576px;
+    max-width: 576px;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
 }
 
 /* Tooltip */
