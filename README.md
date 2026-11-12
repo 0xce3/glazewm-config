@@ -68,7 +68,7 @@ Windows alone reserves the taskbar work area. Both YASB bars use
 `windows_app_bar: false` to avoid an extra reserved row.
 The always-on-top workspace controls adapt to their contents within the left
 `40%` of each screen at a height of
-`32` logical pixels, matching the native Small taskbar, and hide for fullscreen applications. GlazeWM's top outer
+`48` logical pixels, matching the native default-size taskbar, and hide for fullscreen applications. GlazeWM's top outer
 gap is `2px`, so tiled windows start just below the reserved row.
 These are starting dimensions for the wide-screen layout, not automatic collision
 detection. Adjust `dimensions.width` and `dimensions.height` in
