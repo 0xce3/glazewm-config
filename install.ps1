@@ -31,7 +31,6 @@ $packages = @(
     'Flow-Launcher.Flow-Launcher'
     'Microsoft.WindowsTerminal'
     'DEVCOM.JetBrainsMonoNerdFont'
-    'CharlesMilette.TranslucentTB'
 )
 $map = @(Get-ConfigMap)
 foreach ($item in $map) {
@@ -41,7 +40,7 @@ foreach ($item in $map) {
 }
 
 Write-Host 'Core setup only. No accounts, work profiles, WSL, Python or licensed tools are imported.'
-Write-Host 'Close GlazeWM/YASB/Flow Launcher/TranslucentTB before applying configuration.'
+Write-Host 'Close GlazeWM/YASB/Flow Launcher before applying configuration.'
 if (-not $SkipPackages) {
     if (-not $WhatIfPreference) {
         $command = Get-Command winget.exe -ErrorAction SilentlyContinue
@@ -75,9 +74,9 @@ if (-not $SkipPackages) {
 }
 
 # Never kill a running app or overwrite a config it may save over on exit.
-$running = @(Get-Process -Name glazewm, yasb, 'Flow.Launcher', TranslucentTB -ErrorAction SilentlyContinue)
+$running = @(Get-Process -Name glazewm, yasb, 'Flow.Launcher' -ErrorAction SilentlyContinue)
 if ($running.Count -and -not $WhatIfPreference) {
-    throw 'Close GlazeWM, YASB, Flow Launcher and TranslucentTB (including tray icons), then rerun with -SkipPackages. No config was changed.'
+    throw 'Close GlazeWM, YASB and Flow Launcher (including tray icons), then rerun with -SkipPackages. No config was changed.'
 }
 foreach ($item in $map) {
     if (Confirm-Change $item.Live "Konfiguration uebernehmen: $($item.Repo)") {
@@ -125,7 +124,6 @@ if (-not $NoAutostart) {
         @{ Name = 'Flow Launcher'; File = 'Flow.Launcher.exe'; Candidates = @(
             (Join-Path $env:LOCALAPPDATA 'FlowLauncher\Flow.Launcher.exe')
         ) }
-        @{ Name = 'TranslucentTB'; File = 'explorer.exe'; Candidates = @(); Arguments = 'shell:AppsFolder\28017CharlesMilette.TranslucentTB_v826wp6bftszj!TranslucentTB' }
     )
     foreach ($link in $links) {
         $path = Join-Path $startup "$($link.Name).lnk"

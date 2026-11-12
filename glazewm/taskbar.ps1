@@ -99,7 +99,10 @@ public static class YasbFrontmost {
     }
 
     public static bool IsTrayBackdrop(int barLeft, int barRight, int trayLeft, int trayRight) {
-        return barLeft + (barRight - barLeft) / 2 > trayLeft + (trayRight - trayLeft) / 2;
+        int barCenter = barLeft + (barRight - barLeft) / 2;
+        int trayCenter = trayLeft + (trayRight - trayLeft) / 2;
+        return (barLeft <= trayLeft && barRight >= trayRight) || barCenter > trayCenter ||
+            (barLeft > trayLeft && barRight < trayRight && Math.Abs(barCenter - trayCenter) <= 1);
     }
 
     public static void Repair() {

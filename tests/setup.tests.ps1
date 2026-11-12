@@ -27,6 +27,14 @@ try {
     }
     Assert ($parseErrors.Count -eq 0) "All PowerShell files parse: $parseErrors"
 
+    $yasbConfig = Get-Content -LiteralPath (Join-Path $repo 'yasb\config.yaml') -Raw
+    Assert ($yasbConfig -notmatch 'taskbar-background|taskbar_backdrop|tray-island|taskbar-island') 'No custom taskbar backgrounds are configured'
+    Assert ($yasbConfig -match 'style: adaptive') 'Workspace overlay adapts to its contents'
+    Assert ($yasbConfig -notmatch 'windows_app_bar: true') 'Workspace overlays do not reserve another taskbar row'
+    Assert (@(Get-ConfigMap | Where-Object Repo -match 'translucenttb').Count -eq 0) 'TranslucentTB is not deployed or exported'
+    $installer = Get-Content -LiteralPath (Join-Path $repo 'install.ps1') -Raw
+    Assert ($installer -notmatch 'TranslucentTB') 'TranslucentTB is not installed or added to Startup'
+
     $taskbarAst = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'glazewm\taskbar.ps1'), [ref]$null, [ref]$null)
     $definition = $taskbarAst.Find({ param($node)
         $node -is [Management.Automation.Language.StringConstantExpressionAst] -and $node.Value.StartsWith('using System;')
@@ -41,12 +49,17 @@ try {
         if (-not [YasbFrontmost]::IsTrayBackdrop(2240, 2544, 0, 2560)) { throw 'Inset right backdrop not recognized' }
         if (-not [YasbFrontmost]::IsTrayBackdrop(-320, 0, -1920, 0)) { throw 'Negative monitor coordinates not supported' }
         if (-not [YasbFrontmost]::IsTrayBackdrop(-998, -384, -1920, 0)) { throw 'Mixed-DPI right backdrop not recognized' }
-        if ([YasbFrontmost]::IsTrayBackdrop(0, 2560, 0, 2560)) { throw 'Full-width bar classified as backdrop' }
+        if (-not [YasbFrontmost]::IsTrayBackdrop(0, 2560, 0, 2560)) { throw 'Full-width taskbar backdrop not recognized' }
+        if (-not [YasbFrontmost]::IsTrayBackdrop(-1920, 0, -1920, 0)) { throw 'Negative-coordinate full-width backdrop not recognized' }
+        if (-not [YasbFrontmost]::IsTrayBackdrop(1136, 1424, 0, 2560)) { throw 'Centered taskbar pill not recognized' }
+        if (-not [YasbFrontmost]::IsTrayBackdrop(-1104, -816, -1920, 0)) { throw 'Negative-coordinate taskbar pill not recognized' }
+        if (-not [YasbFrontmost]::IsTrayBackdrop(1135, 1423, 0, 2560)) { throw 'Rounded taskbar pill coordinates not recognized' }
+        if ([YasbFrontmost]::IsTrayBackdrop(0, 2558, 0, 2560)) { throw 'Left-anchored bar classified as centered pill' }
         'BACKDROP_POLICY_OK'
     } -ArgumentList $definition
     $compileResult = @($compileJob | Receive-Job -Wait -AutoRemoveJob -ErrorAction Stop)
     Assert ($compileResult -contains 'FRONTMOST_HELPER_COMPILED') 'Taskbar and frontmost helpers compile without changing desktop state'
-    Assert ($compileResult -contains 'BACKDROP_POLICY_OK') 'Tray background policy distinguishes right-edge backdrops from workspace bars'
+    Assert ($compileResult -contains 'BACKDROP_POLICY_OK') 'Tray background policy distinguishes right-edge and centered backdrops from workspace bars'
 
     $jsonc = @'
 {

@@ -23,7 +23,7 @@ bars:
       # Disabled so the 85% background transparency actually shows through
       # (acrylic blur made the bar look solid/milky).
       enabled: false
-      round_corners: true
+      round_corners: false
       round_corners_type: normal
       border_color: system
     window_flags:
@@ -40,42 +40,18 @@ bars:
       right: 0
     widgets:
       left:
-      - home
       - glazewm_workspaces
       center: []
       right: []
-  tray-island:
-    <<: *workspace-bar
-    screens:
-    - '**'
-    class_name: yasb-tray-island
-    alignment:
-      position: top
-      align: right
-    widgets:
-      left: []
-      center: []
-      right:
-      - tray_backdrop
   secondary-bar:
     <<: *workspace-bar
     screens:
     - '*'
     window_flags:
       always_on_top: true
-      windows_app_bar: true
+      windows_app_bar: false
       hide_on_fullscreen: true
 widgets:
-  tray_backdrop:
-    type: yasb.custom.CustomWidget
-    options:
-      class_name: tray-backdrop-widget
-      label: ' '
-      label_alt: ' '
-      callbacks:
-        on_left: do_nothing
-        on_middle: do_nothing
-        on_right: do_nothing
   battery:
     type: yasb.battery.BatteryWidget
     options:

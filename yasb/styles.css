@@ -46,37 +46,14 @@
     color: var(--yasb-fg);
 }
 
-.yasb-bar,
-.yasb-tray-island {
-    background-color: var(--yasb-bar-bg);
+.yasb-bar {
+    background-color: transparent;
     margin: 0;
     padding: 0px 8px;
     border-radius: 0;
 }
 
-.yasb-bar.adaptive,
-.yasb-tray-island.adaptive {
-    border: none;
-    -qproperty-railheight: 0;
-    -qproperty-islandradius: 16;
-    -qproperty-grouppadding: 8;
-    -qproperty-islands: true;
-    -qproperty-edgeradius: 0;
-}
-
-.yasb-bar.adaptive {
-    margin-right: 1px;
-}
-
-.yasb-bar.adaptive .widget {
-    background-color: transparent;
-}
-
-.yasb-tray-island .tray-backdrop-widget {
-    min-width: 576px;
-    max-width: 576px;
-    margin: 0;
-    padding: 0;
+.yasb-bar .widget {
     background-color: transparent;
 }
 
@@ -173,7 +150,7 @@
     padding: 0px 6px;
     margin: 4px 0;
     border-radius: 4px;
-    transition: background-color 0.1s 
+    transition: background-color 0.1s
 }
 
 .widget .icon {
