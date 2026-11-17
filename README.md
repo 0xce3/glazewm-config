@@ -83,7 +83,7 @@ the workspace window should not be relied on to pass clicks through to the taskb
 
 | Shortcut | Action |
 |---|---|
-| `Alt+H/J/K/L` | Focus window |
+| `Alt+H/J/K/L` / `Alt+Arrow keys` | Focus window left/down/up/right |
 | `Alt+Shift+H/J/K/L` | Move window |
 | `Alt+1..9` / `Alt+Shift+1..9` | Switch workspace / move window to workspace |
 | `Alt+Enter` | Terminal |
@@ -96,6 +96,12 @@ the workspace window should not be relied on to pass clicks through to the taskb
 
 All workspaces initially use monitor 0. Layout shortcuts fall back to available monitors.
 See [GlazeWM configuration](glazewm/config.yaml) for all bindings.
+
+Workspaces can contain multiple tiled windows, including vertically stacked
+terminals on `1: term`. Use `Alt+Arrow keys` to focus neighboring windows and
+`Alt+Shift+Arrow keys` to move them. `Alt+Up/Down` are handled globally by
+GlazeWM and no longer reach editors for moving lines. Workspace switching
+and application assignments remain unchanged.
 
 ## Export configuration
 

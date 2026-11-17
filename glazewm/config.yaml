@@ -224,18 +224,16 @@ binding_modes:
         bindings: ['escape', 'enter']
 
 keybindings:
-  # --- Focus: move focus between tiles (Vim HJKL or left/right arrows) ---
-  # Note: alt+up / alt+down are intentionally NOT bound here so they stay free
-  # for "move line up/down" inside editors (Neovim/VS Code). Use alt+k / alt+j
-  # for focus up/down instead.
+  # --- Focus: move focus between tiles (Vim HJKL or all four arrow keys) ---
+  # Alt+up/down are handled by GlazeWM, not by editors for moving lines.
   - commands: ['focus --direction left']
     bindings: ['alt+h', 'alt+left']
   - commands: ['focus --direction right']
     bindings: ['alt+l', 'alt+right']
   - commands: ['focus --direction up']
-    bindings: ['alt+k']
+    bindings: ['alt+k', 'alt+up']
   - commands: ['focus --direction down']
-    bindings: ['alt+j']
+    bindings: ['alt+j', 'alt+down']
 
   # --- Move: move the focused window between tiles ---
   - commands: ['move --direction left']
